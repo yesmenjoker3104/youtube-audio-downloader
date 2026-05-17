@@ -46,13 +46,14 @@ class AudioSeparator:
     # public methods
     # ------------------------------------------------------------------
 
-    def separate(self, audio_path: str, output_dir: str, requested_stems: Optional[List[str]] = None) -> Dict[str, str]:
+    def separate(self, audio_path: str, output_dir: str, requested_stems: Optional[List[str]] = None, progress_callback=None) -> Dict[str, str]:
         """音源分離を実行する。
 
         Args:
             audio_path: 入力音声ファイルのパス（MP3 / WAV / FLAC など）
             output_dir: 分離結果の出力先ルートディレクトリ
             requested_stems: 取得したいステム名のリスト（None の場合は全ステムを返す）
+            progress_callback: 進捗テキストを受け取るコールバック関数 (str) -> None
 
         Returns:
             ステム名 -> ファイルパス の辞書
@@ -84,17 +85,24 @@ class AudioSeparator:
             audio_path,
         ]
 
-        result = subprocess.run(
+        proc = subprocess.Popen(
             cmd,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             text=True,
             env=self._build_demucs_env(),
         )
-        if result.returncode != 0:
+        stdout_lines = []
+        for line in proc.stdout:
+            line = line.rstrip()
+            stdout_lines.append(line)
+            if progress_callback:
+                progress_callback(line)
+        proc.wait()
+        if proc.returncode != 0:
             raise RuntimeError(
                 f"Demucs の実行に失敗しました。\n"
-                f"stdout: {result.stdout}\n"
-                f"stderr: {result.stderr}"
+                f"stderr: {chr(10).join(stdout_lines)}"
             )
 
         stems = self._collect_output_paths(audio_path, output_dir)
