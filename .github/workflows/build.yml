@@ -74,13 +74,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python 3.11
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Create virtual environment
         working-directory: youtube_dl
-        run: python3 -m venv .venv
+        run: ${{ steps.setup-python.outputs.python-path }} -m venv .venv
 
       - name: Install PyInstaller (ensure it's always available)
         working-directory: youtube_dl
