@@ -57,18 +57,7 @@ class AudioSeparator:
 
         Returns:
             ステム名 -> ファイルパス の辞書
-            例: {"vocals": "/tmp/out/vocals.wav", "drums": "/tmp/out/drums.wav", ...}
-
-        Raises:
-            RuntimeError: Demucsの実行に失敗した場合
-            FileNotFoundError: demucsコマンドが見つからない場合
         """
-        if shutil.which("demucs") is None:
-            raise FileNotFoundError(
-                "demucs コマンドが見つかりません。"
-                " `pip install demucs` でインストールしてください。"
-            )
-
         audio_path = str(Path(audio_path).resolve())
         output_dir = str(Path(output_dir).resolve())
         os.makedirs(output_dir, exist_ok=True)
@@ -77,33 +66,79 @@ class AudioSeparator:
         # pydub で WAV に変換してから demucs に渡す
         audio_path = self._ensure_wav(audio_path, output_dir)
 
-        cmd = [
-            "demucs",
+        demucs_args = [
             "--name", self.model,
             "--out", output_dir,
             "--device", self.device,
             audio_path,
         ]
 
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            env=self._build_demucs_env(),
-        )
-        stdout_lines = []
-        for line in proc.stdout:
-            line = line.rstrip()
-            stdout_lines.append(line)
-            if progress_callback:
-                progress_callback(line)
-        proc.wait()
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"Demucs の実行に失敗しました。\n"
-                f"stderr: {chr(10).join(stdout_lines)}"
+        demucs_cmd = shutil.which("demucs")
+        if demucs_cmd:
+            # 開発環境: subprocess でコマンド実行
+            proc = subprocess.Popen(
+                [demucs_cmd] + demucs_args,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                env=self._build_demucs_env(),
             )
+            stdout_lines = []
+            for line in proc.stdout:
+                line = line.rstrip()
+                stdout_lines.append(line)
+                if progress_callback:
+                    progress_callback(line)
+            proc.wait()
+            if proc.returncode != 0:
+                raise RuntimeError(
+                    f"Demucs の実行に失敗しました。\n"
+                    f"stderr: {chr(10).join(stdout_lines)}"
+                )
+        else:
+            # PyInstaller バンドル環境: demucs Python API を直接呼び出す
+            try:
+                from demucs.separate import main as _demucs_main
+            except ImportError:
+                raise FileNotFoundError(
+                    "demucs モジュールが見つかりません。"
+                    " `pip install demucs` でインストールしてください。"
+                )
+
+            import sys
+
+            class _ProgressWriter:
+                def __init__(self):
+                    self.lines: List[str] = []
+
+                def write(self, text: str) -> int:
+                    for ln in text.splitlines():
+                        ln = ln.rstrip()
+                        if ln:
+                            self.lines.append(ln)
+                            if progress_callback:
+                                progress_callback(ln)
+                    return len(text)
+
+                def flush(self) -> None:
+                    pass
+
+            writer = _ProgressWriter()
+            old_argv = sys.argv
+            old_stdout, old_stderr = sys.stdout, sys.stderr
+            sys.argv = ["demucs"] + demucs_args
+            sys.stdout = sys.stderr = writer  # type: ignore[assignment]
+            try:
+                _demucs_main()
+            except SystemExit as exc:
+                if exc.code not in (None, 0):
+                    raise RuntimeError(
+                        f"Demucs の実行に失敗しました (code={exc.code})。\n"
+                        f"{chr(10).join(writer.lines)}"
+                    )
+            finally:
+                sys.argv = old_argv
+                sys.stdout, sys.stderr = old_stdout, old_stderr
 
         stems = self._collect_output_paths(audio_path, output_dir)
         if requested_stems:
