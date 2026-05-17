@@ -76,15 +76,18 @@ jobs:
           pip install pyinstaller Pillow yt-dlp PySide6 pydub demucs
           pip install torch torchaudio
 
-      - name: Install ffmpeg (macOS)
-        run: brew install ffmpeg
-
-      - name: Copy ffmpeg binaries
+      - name: Install ffmpeg static binary (macOS)
         working-directory: youtube_dl
         run: |
           mkdir -p ffmpeg_mac
-          cp "$(which ffmpeg)"  ffmpeg_mac/ffmpeg
-          cp "$(which ffprobe)" ffmpeg_mac/ffprobe
+          # evermeet.cx の静的ビルドを使用（動的リンク不要 = dylib 依存なし）
+          curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip" -o /tmp/ffmpeg.zip
+          curl -L "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip" -o /tmp/ffprobe.zip
+          unzip -o /tmp/ffmpeg.zip  -d ffmpeg_mac/
+          unzip -o /tmp/ffprobe.zip -d ffmpeg_mac/
+          chmod +x ffmpeg_mac/ffmpeg ffmpeg_mac/ffprobe
+          # バイナリ確認
+          file ffmpeg_mac/ffmpeg
 
       - name: Build with PyInstaller
         working-directory: youtube_dl

@@ -90,6 +90,16 @@ DATA_FILE   = _BASE_DIR / "download_list.json"
 # ──────────────────────────────────────────────────────────────────────────────
 
 
+def _find_bundled_ffmpeg() -> 'Path | None':
+    """バンドルされた ffmpeg バイナリのパスを返す。Windows/macOS 両対応。
+    見つからなければ None を返し、yt-dlp が PATH から探す。"""
+    for name in ('ffmpeg.exe', 'ffmpeg'):
+        p = _BUNDLE_DIR / name
+        if p.exists():
+            return p
+    return None
+
+
 class AppSignals(QObject):
     """スレッド間通信用シグナル (全ワーカーで共有)"""
     info_ready   = Signal(str, str, str)         # url, title, thumb_url
@@ -255,8 +265,8 @@ class DownloadWorker(QRunnable):
                 'sleep_interval': 1,
                 'max_sleep_interval': 5,
             }
-            _ffmpeg = _BUNDLE_DIR / 'ffmpeg.exe'
-            if _ffmpeg.exists():
+            _ffmpeg = _find_bundled_ffmpeg()
+            if _ffmpeg:
                 opts['ffmpeg_location'] = str(_BUNDLE_DIR)
             try:
                 with yt_dlp.YoutubeDL(opts) as ydl:
@@ -270,7 +280,7 @@ class DownloadWorker(QRunnable):
             if mp4 and mp4.exists():
                 self.sig.dl_progress.emit(url, 'MP3 抽出中...', -1.0)
                 mp3 = mp4.with_suffix('.mp3')
-                ffmpeg_exe = str(_ffmpeg) if (_ffmpeg.exists()) else 'ffmpeg'
+                ffmpeg_exe = str(_ffmpeg) if _ffmpeg else 'ffmpeg'
                 try:
                     import subprocess as _sp
                     _sp.run(
@@ -318,8 +328,7 @@ class DownloadWorker(QRunnable):
 
         try:
             # PyInstaller バンドル時は同梱 ffmpeg を使用
-            _ffmpeg = _BUNDLE_DIR / 'ffmpeg.exe'
-            if _ffmpeg.exists():
+            if _find_bundled_ffmpeg():
                 opts['ffmpeg_location'] = str(_BUNDLE_DIR)
             with yt_dlp.YoutubeDL(opts) as ydl:
                 ydl.download([url])

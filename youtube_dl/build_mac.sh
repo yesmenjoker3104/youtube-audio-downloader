@@ -28,20 +28,13 @@ mkdir -p "$FFMPEG_DIR"
 if [ -f "$FFMPEG_DIR/ffmpeg" ] && [ -f "$FFMPEG_DIR/ffprobe" ]; then
     echo "  ffmpeg: 既に存在します。スキップします。"
 else
-    # Homebrew 経由でインストールされている場合はそちらを使用
-    if command -v ffmpeg &>/dev/null && command -v ffprobe &>/dev/null; then
-        echo "  Homebrew の ffmpeg を使用します..."
-        cp "$(command -v ffmpeg)"  "$FFMPEG_DIR/ffmpeg"
-        cp "$(command -v ffprobe)" "$FFMPEG_DIR/ffprobe"
-        echo "  ffmpeg: コピー完了"
-    else
-        echo "  ffmpeg が見つかりません。Homebrew でインストールします..."
-        echo "  ※ Homebrew 未インストールの場合は https://brew.sh を参照してください"
-        brew install ffmpeg
-        cp "$(command -v ffmpeg)"  "$FFMPEG_DIR/ffmpeg"
-        cp "$(command -v ffprobe)" "$FFMPEG_DIR/ffprobe"
-        echo "  ffmpeg: インストール・コピー完了"
-    fi
+    echo "  evermeet.cx から静的ビルドをダウンロード中..."
+    curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"  -o /tmp/ffmpeg.zip
+    curl -L "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip" -o /tmp/ffprobe.zip
+    unzip -o /tmp/ffmpeg.zip  -d "$FFMPEG_DIR/"
+    unzip -o /tmp/ffprobe.zip -d "$FFMPEG_DIR/"
+    chmod +x "$FFMPEG_DIR/ffmpeg" "$FFMPEG_DIR/ffprobe"
+    echo "  ffmpeg: ダウンロード完了 (静的ビルド)"
 fi
 
 echo ""
