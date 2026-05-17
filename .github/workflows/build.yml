@@ -91,7 +91,7 @@ jobs:
 
       - name: Build with PyInstaller
         working-directory: youtube_dl
-        run: python -m pyinstaller youtube_dl_mac.spec --noconfirm
+        run: python3 -m pyinstaller youtube_dl_mac.spec --noconfirm
 
       - name: Remove quarantine attribute
         working-directory: youtube_dl
