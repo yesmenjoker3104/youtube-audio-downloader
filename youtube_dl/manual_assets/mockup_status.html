@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+    font-size: 13px;
+    width: 700px;
+    height: 500px;
+    overflow: hidden;
+    padding: 24px;
+  }
+  h2 { color: #89b4fa; margin-bottom: 20px; font-size: 16px; }
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: #181825;
+    border: 1px solid #313244;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .icon { font-size: 18px; width: 28px; text-align: center; }
+  .label { flex: 0 0 160px; font-size: 13px; font-weight: bold; }
+  .desc { color: #585b70; font-size: 12px; }
+  .status-done { color: #a6e3a1; }
+  .status-wait { color: #cba6f7; }
+  .status-dl { color: #f9e2af; }
+  .status-convert { color: #89dceb; }
+  .status-sep { color: #cba6f7; }
+  .status-sepdone { color: #89dceb; }
+  .status-error { color: #f38ba8; }
+  .status-idle { color: #585b70; }
+  .progress-bar {
+    width: 160px; height: 12px;
+    background: #313244;
+    border: 1px solid #45475a;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: #89b4fa; border-radius: 2px; }
+</style>
+</head>
+<body>
+  <h2>状態アイコン一覧</h2>
+
+  <div class="status-row">
+    <div class="icon status-idle">—</div>
+    <div class="label status-idle">未処理</div>
+    <div class="desc">まだ処理が開始されていない状態</div>
+  </div>
+
+  <div class="status-row">
+    <div class="icon status-wait">⏳</div>
+    <div class="label status-wait">待機中</div>
+    <div class="desc">キューに入り、処理開始を待っている状態</div>
+  </div>
+
+  <div class="status-row">
+    <div class="icon">⬇</div>
+    <div class="label status-dl">ダウンロード中 72%</div>
+    <div>
+      <div class="progress-bar"><div class="progress-fill" style="width:72%"></div></div>
+    </div>
+    <div class="desc">音声ファイルを取得中。進捗バー表示</div>
+  </div>
+
+  <div class="status-row">
+    <div class="icon status-convert">🔄</div>
+    <div class="label status-convert">変換中...</div>
+    <div class="desc">MP3 への変換処理中（不定プログレスバー）</div>
+  </div>
+
+  <div class="status-row">
+    <div class="icon status-done">〇</div>
+    <div class="label status-done">完了</div>
+    <div class="desc">ダウンロード完了（音源分離なし）</div>
+  </div>
+
+  <div class="status-row">
+    <div class="icon status-sep">🔬</div>
+    <div class="label status-sep">音源分離中...</div>
+    <div class="desc">Demucs による音源分離を実行中</div>
+  </div>
+
+  <div class="status-row">
+    <div class="icon status-sepdone">🎵</div>
+    <div class="label status-sepdone">分離完了</div>
+    <div class="desc">音源分離まで完了した最終状態</div>
+  </div>
+
+  <div class="status-row">
+    <div class="icon status-error">✕</div>
+    <div class="label status-error">エラー（クリックで詳細）</div>
+    <div class="desc">何らかのエラーが発生。クリックで詳細確認可</div>
+  </div>
+</body>
+</html>

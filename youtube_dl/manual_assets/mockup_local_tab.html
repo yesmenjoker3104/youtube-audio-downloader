@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+    font-size: 13px;
+    width: 1100px;
+    height: 720px;
+    overflow: hidden;
+  }
+  .window { width: 1100px; height: 720px; display: flex; flex-direction: column; }
+  .titlebar {
+    background: #181825;
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 13px;
+    border-bottom: 1px solid #45475a;
+    color: #89b4fa;
+  }
+  .tabs {
+    display: flex;
+    background: #313244;
+    border-bottom: 1px solid #45475a;
+    padding: 0 8px;
+    padding-top: 6px;
+  }
+  .tab {
+    padding: 8px 22px;
+    border: 1px solid #45475a;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    margin-right: 2px;
+    cursor: pointer;
+    color: #6c7086;
+    background: #313244;
+  }
+  .tab.active { background: #1e1e2e; color: #89b4fa; font-weight: bold; }
+  .content {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #1e1e2e;
+    border: 1px solid #45475a;
+    border-top: none;
+    overflow: hidden;
+  }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .btn {
+    background: #89b4fa;
+    color: #1e1e2e;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    padding: 0 12px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .btn.sm { height: 32px; }
+  label { white-space: nowrap; }
+  .readonly-input {
+    flex: 1;
+    background: #181825;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #cdd6f4;
+    height: 32px;
+    display: flex;
+    align-items: center;
+  }
+  .dnd-zone {
+    background: #181825;
+    border: 2px dashed #45475a;
+    border-radius: 4px;
+    text-align: center;
+    padding: 10px;
+    color: #585b70;
+    font-style: italic;
+    font-size: 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #181825;
+    border: 1px solid #45475a;
+  }
+  th {
+    background: #313244;
+    padding: 6px;
+    font-weight: bold;
+    color: #cdd6f4;
+    border-bottom: 1px solid #45475a;
+    text-align: left;
+  }
+  td { padding: 8px 12px; border-bottom: 1px solid #313244; height: 48px; }
+  .status-done { color: #89dceb; font-weight: bold; font-size: 13px; }
+  .status-sep { color: #cba6f7; font-size: 12px; }
+  .status-idle { color: #585b70; font-size: 12px; }
+  .lbl-count { color: #585b70; font-size: 12px; }
+  fieldset {
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 8px 16px;
+    padding-top: 12px;
+  }
+  legend { color: #cdd6f4; font-weight: bold; font-size: 12px; padding: 0 4px; }
+  .check-item { display: flex; align-items: center; gap: 6px; }
+  .check-box { width: 15px; height: 15px; border: 1px solid #89b4fa; border-radius: 3px; background: #313244; }
+  .check-box.checked { background: #89b4fa; }
+  .spinbox {
+    background: #313244; color: #cdd6f4; border: 1px solid #45475a;
+    border-radius: 4px; padding: 2px 6px; font-size: 14px; width: 80px; height: 28px; text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="titlebar">🎬 YouTube Audio Downloader</div>
+  <div class="tabs">
+    <div class="tab">🎬  YouTube ダウンロード</div>
+    <div class="tab active">🎸  ローカル MP3 音源分離</div>
+  </div>
+  <div class="content">
+    <!-- ファイル追加ボタン行 -->
+    <div class="row">
+      <button class="btn">📄  ファイルを追加...</button>
+      <button class="btn">📁  フォルダを追加...</button>
+    </div>
+
+    <div class="dnd-zone">
+      または、MP3 ファイル ・ フォルダをこの画面にドラッグ＆ドロップでも追加できます
+    </div>
+
+    <!-- テーブル -->
+    <div style="flex:1;overflow:hidden">
+      <table>
+        <thead>
+          <tr>
+            <th>ファイル名</th>
+            <th>パス</th>
+            <th style="width:130px">状態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Superfly 『愛をこめて花束を』Music Video.mp3</td>
+            <td style="color:#6c7086;font-size:11px;">C:\Users\user\Downloads\Superfly 『愛をこめて花束を』Music Video\...</td>
+            <td style="text-align:center"><span class="status-done">🎵  分離完了</span></td>
+          </tr>
+          <tr>
+            <td>Sigma Harmonics OST - Hope.mp3</td>
+            <td style="color:#6c7086;font-size:11px;">C:\Users\user\Downloads\Sigma Harmonics OST - Hope\...</td>
+            <td style="text-align:center"><span class="status-sep">🔬  音源分離中...</span></td>
+          </tr>
+          <tr>
+            <td>Sigma Harmonics OST - Gentle Tones.mp3</td>
+            <td style="color:#6c7086;font-size:11px;">C:\Users\user\Downloads\Sigma Harmonics OST - Gentle Tones.mp3</td>
+            <td style="text-align:center"><span class="status-idle">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="lbl-count">登録数: 3</div>
+
+    <!-- 出力先行 -->
+    <div class="row">
+      <label>出力先:</label>
+      <div class="readonly-input">C:\Users\user\Downloads</div>
+      <button class="btn sm">出力先変更...</button>
+      <button class="btn sm">📁 フォルダを開く</button>
+    </div>
+
+    <!-- パーツ選択 -->
+    <fieldset>
+      <legend>抽出するパートを選択</legend>
+      <div class="row">
+        <div style="display:flex;gap:20px;align-items:center;flex:1">
+          <div class="check-item"><div class="check-box checked"></div> Vocal</div>
+          <div class="check-item"><div class="check-box checked"></div> Guitar</div>
+          <div class="check-item"><div class="check-box checked"></div> Bass</div>
+          <div class="check-item"><div class="check-box checked"></div> Drums</div>
+          <div class="check-item"><div class="check-box checked"></div> Piano</div>
+          <div class="check-item"><div class="check-box checked"></div> その他</div>
+        </div>
+        <label style="white-space:nowrap">並列数:</label>
+        <div class="spinbox">3</div>
+      </div>
+    </fieldset>
+
+    <!-- ボタン行 -->
+    <div class="row">
+      <button class="btn" style="flex:1;height:44px;font-size:14px;">▶  分離スタート</button>
+      <button class="btn" style="flex:0 0 120px;height:44px;background:#585b70;color:#cdd6f4;">リストクリア</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

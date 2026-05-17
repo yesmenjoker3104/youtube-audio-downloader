@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Audio Downloader — 使い方マニュアル</title>
+<style>
+  :root {
+    --bg:      #1e1e2e;
+    --bg2:     #181825;
+    --bg3:     #313244;
+    --border:  #45475a;
+    --text:    #cdd6f4;
+    --dim:     #585b70;
+    --blue:    #89b4fa;
+    --green:   #a6e3a1;
+    --yellow:  #f9e2af;
+    --cyan:    #89dceb;
+    --purple:  #cba6f7;
+    --red:     #f38ba8;
+    --peach:   #fab387;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Yu Gothic UI", "Hiragino Sans", sans-serif;
+    font-size: 14px;
+    line-height: 1.75;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── サイドバー ── */
+  nav#sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 100;
+  }
+  nav#sidebar .site-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--blue);
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  nav#sidebar ul { list-style: none; }
+  nav#sidebar li a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 3px solid transparent;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  nav#sidebar li a:hover {
+    color: var(--text);
+    background: var(--bg3);
+    border-left-color: var(--blue);
+  }
+  nav#sidebar li.h2 > a { font-weight: bold; color: var(--text); padding-top: 10px; }
+  nav#sidebar li.h3 > a { padding-left: 34px; font-size: 12px; }
+
+  /* ── メインコンテンツ ── */
+  main {
+    margin-left: 260px;
+    flex: 1;
+    padding: 48px 56px;
+    max-width: 980px;
+  }
+
+  /* ── タイポグラフィ ── */
+  h1 {
+    font-size: 28px;
+    color: var(--blue);
+    border-bottom: 2px solid var(--blue);
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+  }
+  .subtitle { color: var(--dim); font-size: 13px; margin-bottom: 40px; }
+  h2 {
+    font-size: 20px;
+    color: var(--blue);
+    border-left: 4px solid var(--blue);
+    padding-left: 14px;
+    margin: 48px 0 18px;
+  }
+  h3 {
+    font-size: 16px;
+    color: var(--cyan);
+    margin: 30px 0 12px;
+  }
+  h4 { color: var(--purple); margin: 20px 0 8px; font-size: 14px; }
+  p { margin-bottom: 12px; }
+
+  /* ── テーブル ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  th {
+    background: var(--bg3);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: bold;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--bg3);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── コードブロック ── */
+  pre {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 12px 0 20px;
+    color: var(--cyan);
+  }
+  code {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: "Cascadia Code", "Consolas", monospace;
+    font-size: 12px;
+    color: var(--peach);
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; font-size: 13px; }
+
+  /* ── 画像 ── */
+  .screenshot {
+    width: 100%;
+    max-width: 900px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 16px 0 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    display: block;
+  }
+  .screenshot-sm {
+    max-width: 520px;
+  }
+  .caption {
+    text-align: center;
+    font-size: 12px;
+    color: var(--dim);
+    margin-top: -18px;
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  /* ── 注意・情報ボックス ── */
+  .box {
+    border-left: 4px solid;
+    border-radius: 0 6px 6px 0;
+    padding: 12px 18px;
+    margin: 16px 0 24px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .box-info  { border-color: var(--blue);   background: rgba(137,180,250,0.08); }
+  .box-tip   { border-color: var(--green);  background: rgba(166,227,161,0.08); }
+  .box-warn  { border-color: var(--yellow); background: rgba(249,226,175,0.08); }
+  .box .head { font-weight: bold; margin-bottom: 4px; }
+  .box-info  .head { color: var(--blue);   }
+  .box-tip   .head { color: var(--green);  }
+  .box-warn  .head { color: var(--yellow); }
+
+  /* ── 区切り線 ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  /* ── ステータスバッジ ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .badge-done   { background: rgba(166,227,161,0.15); color: var(--green);  border: 1px solid var(--green);  }
+  .badge-wait   { background: rgba(203,166,247,0.15); color: var(--purple); border: 1px solid var(--purple); }
+  .badge-dl     { background: rgba(249,226,175,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+  .badge-cyan   { background: rgba(137,220,235,0.15); color: var(--cyan);   border: 1px solid var(--cyan);   }
+  .badge-error  { background: rgba(243,139,168,0.15); color: var(--red);    border: 1px solid var(--red);    }
+  .badge-dim    { background: rgba(88,91,112,0.20);   color: var(--dim);    border: 1px solid var(--border); }
+
+  /* ── FAQ アコーディオン風 ── */
+  details {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  summary {
+    padding: 14px 18px;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--blue);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  summary::before { content: "▶"; font-size: 11px; color: var(--dim); transition: transform .2s; }
+  details[open] summary::before { transform: rotate(90deg); }
+  summary::-webkit-details-marker { display: none; }
+  details .faq-body { padding: 0 18px 16px; color: var(--text); font-size: 13px; line-height: 1.75; }
+
+  /* ── フローステップ ── */
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 12px 0 20px; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .steps li::before {
+    content: counter(step);
+    min-width: 28px; height: 28px;
+    background: var(--blue);
+    color: var(--bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── ツリー表示 ── */
+  .file-tree {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px 24px;
+    font-family: "Cascadia Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 2;
+    margin: 12px 0 20px;
+  }
+  .file-tree .dir   { color: var(--blue); font-weight: bold; }
+  .file-tree .mp3   { color: var(--green); }
+  .file-tree .stem  { color: var(--cyan); }
+  .file-tree .note  { color: var(--yellow); font-style: italic; font-size: 11px; margin-left: 6px; }
+  .file-tree .com   { color: var(--dim); }
+
+  /* ── スクロールバー ── */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ── サイドバー ── -->
+<nav id="sidebar">
+  <div class="site-title">🎬 YouTube Audio Downloader<br>使い方マニュアル</div>
+  <ul>
+    <li class="h2"><a href="#overview">1. 概要</a></li>
+    <li class="h2"><a href="#startup">2. 起動方法</a></li>
+    <li class="h2"><a href="#layout">3. 画面構成</a></li>
+    <li class="h2"><a href="#yt-tab">4. YouTube ダウンロードタブ</a></li>
+    <li class="h3"><a href="#yt-add">URL を追加する</a></li>
+    <li class="h3"><a href="#yt-folder">出力先フォルダ</a></li>
+    <li class="h3"><a href="#yt-sep">音源分離オプション</a></li>
+    <li class="h3"><a href="#yt-start">ダウンロード開始</a></li>
+    <li class="h3"><a href="#yt-context">右クリックメニュー</a></li>
+    <li class="h2"><a href="#local-tab">5. ローカル MP3 音源分離タブ</a></li>
+    <li class="h2"><a href="#status">6. 状態アイコンの見方</a></li>
+    <li class="h2"><a href="#output">7. 出力ファイルの構成</a></li>
+    <li class="h2"><a href="#faq">8. よくある質問</a></li>
+  </ul>
+</nav>
+
+<!-- ── メインコンテンツ ── -->
+<main>
+
+  <h1>YouTube Audio Downloader</h1>
+  <p class="subtitle">バージョン 1.0 &nbsp;|&nbsp; 対応 OS: Windows 10 / 11</p>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="overview">1. 概要</h2>
+  <p>
+    <strong>YouTube Audio Downloader</strong> は、YouTube の動画から音声を MP3 ファイルとして保存し、
+    さらに AI（Demucs）を使って楽器ごとのトラックに音源分離できるツールです。
+  </p>
+
+  <table>
+    <thead><tr><th>機能</th><th>説明</th></tr></thead>
+    <tbody>
+      <tr><td>YouTube MP3 ダウンロード</td><td>URL を貼り付けるだけで高品質 MP3 (192kbps) を保存</td></tr>
+      <tr><td>YouTube MP4 ダウンロード</td><td>映像付きの MP4 ファイルとしても保存可能</td></tr>
+      <tr><td>AI 音源分離</td><td>Vocal / Guitar / Bass / Drums / Piano / Other に分離（htdemucs_6s モデル）</td></tr>
+      <tr><td>ローカルファイル対応</td><td>手持ちの音声ファイルに対しても音源分離を実行</td></tr>
+      <tr><td>並列処理</td><td>最大 10 ファイルを同時にダウンロード・処理</td></tr>
+      <tr><td>リスト自動保存</td><td>ダウンロードリストは <code>download_list.json</code> に自動保存・復元</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="startup">2. 起動方法</h2>
+
+  <h3>EXE ファイルで起動する場合</h3>
+  <ol class="steps">
+    <li><code>youtube_dl.exe</code> をダブルクリックします。</li>
+    <li>初回起動時に Windows Defender のポップアップが表示された場合は「詳細情報」→「実行」をクリックします。</li>
+    <li>アプリのウィンドウが開きます。</li>
+  </ol>
+
+  <h3>Python スクリプトで起動する場合</h3>
+  <pre>cd youtube_dl
+python app.py</pre>
+
+  <div class="box box-info">
+    <div class="head">💡 必要な依存ライブラリ</div>
+    <code>pip install PySide6 yt-dlp demucs pydub Pillow</code><br>
+    ffmpeg が PATH に含まれているか、EXE 版では <code>ffmpeg.exe</code> が同梱されている必要があります。
+  </div>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="layout">3. 画面構成</h2>
+
+  <img src="manual_assets/img_yt_tab.png" alt="アプリ全体画面" class="screenshot">
+  <p class="caption">▲ アプリ起動直後の画面（YouTube ダウンロードタブ）</p>
+
+  <p>アプリは <strong>2 つのタブ</strong> で構成されています。</p>
+  <table>
+    <thead><tr><th>タブ</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>🎬 YouTube ダウンロード</td><td>YouTube URL からダウンロード＆音源分離</td></tr>
+      <tr><td>🎸 ローカル MP3 音源分離</td><td>手持ちの音声ファイルを音源分離のみ実行</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="yt-tab">4. YouTube ダウンロードタブ</h2>
+
+  <h3 id="yt-add">4.1 URL を追加する</h3>
+  <ol class="steps">
+    <li>上部の <strong>URL 入力欄</strong> に YouTube の URL をコピー＆ペーストします。</li>
+    <li><code>Enter</code> キーを押すか、<strong>「追加」</strong> ボタンをクリックします。</li>
+    <li>自動的にタイトルとサムネイルが取得され、テーブルに行が追加されます。</li>
+  </ol>
+
+  <div class="box box-warn">
+    <div class="head">⚠️ プレイリスト URL について</div>
+    プレイリストの URL を追加した場合、先頭の <strong>1 曲</strong> のみ取得されます。
+    プレイリスト全体を一括ダウンロードしたい場合は、各動画の URL を個別に追加してください。
+  </div>
+
+  <h3 id="yt-folder">4.2 出力先フォルダを設定する</h3>
+  <table>
+    <thead><tr><th>ボタン</th><th>動作</th></tr></thead>
+    <tbody>
+      <tr><td>出力先変更...</td><td>フォルダ選択ダイアログを開く</td></tr>
+      <tr><td>📁 フォルダを開く</td><td>現在の出力先をエクスプローラーで開く</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="yt-sep">4.3 音源分離オプションを設定する</h3>
+  <p>テーブル下部の <strong>「音源分離 — 抽出するパートを選択」</strong> グループで設定します。</p>
+
+  <table>
+    <thead><tr><th>チェックボックス</th><th>抽出されるトラック</th></tr></thead>
+    <tbody>
+      <tr><td>Vocal</td><td>ボーカル・歌声</td></tr>
+      <tr><td>Guitar</td><td>ギター</td></tr>
+      <tr><td>Bass</td><td>ベース</td></tr>
+      <tr><td>Drums</td><td>ドラム</td></tr>
+      <tr><td>Piano</td><td>ピアノ</td></tr>
+      <tr><td>その他</td><td>上記以外（弦楽器・シンセ等）</td></tr>
+      <tr><td><strong>動画をダウンロード (MP4)</strong></td><td>MP3 ではなく映像付き MP4 でダウンロード</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-tip">
+    <div class="head">✅ パート選択と音源分離の関係</div>
+    <strong>何も選択しない場合:</strong> 音源分離は行われず、MP3 ファイルのみ保存されます。<br>
+    <strong>チェックを入れた場合:</strong> ダウンロード完了後、選択したパートの音源分離が自動で実行されます。
+  </div>
+
+  <p>
+    <strong>並列数</strong>（右端のスピンボックス）で同時処理件数を <code>1〜10</code> の範囲で設定できます。
+    PC のスペックが低い場合は <code>1〜2</code> に下げることを推奨します。
+  </p>
+
+  <h3 id="yt-start">4.4 ダウンロードを開始する</h3>
+  <ol class="steps">
+    <li><strong>「▶ スタート」</strong> ボタンをクリックします。</li>
+    <li>未ダウンロードのすべての URL が処理キューに入ります。</li>
+    <li>ボタンが <em>「ダウンロード中... (完了数 / 合計)」</em> に変わり、進捗が表示されます。</li>
+    <li>全件完了するとボタンが戻り、操作可能になります。</li>
+  </ol>
+
+  <h3 id="yt-context">4.5 右クリックメニュー</h3>
+
+  <img src="manual_assets/img_contextmenu.png" alt="右クリックメニュー" class="screenshot screenshot-sm">
+  <p class="caption">▲ テーブル行を右クリックすると表示されるメニュー</p>
+
+  <table>
+    <thead><tr><th>メニュー</th><th>動作</th></tr></thead>
+    <tbody>
+      <tr><td>🔄 再ダウンロード</td><td>選択行のダウンロードをリセットして再実行します</td></tr>
+      <tr><td>🗑 選択行を削除</td><td>選択行をリストから削除します</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box box-info">
+    <div class="head">💡 複数行の選択</div>
+    <code>Ctrl + クリック</code> で複数行を選択してから右クリックすると、まとめて操作できます。
+    処理中の行は削除・再ダウンロードの対象外になります。
+  </div>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="local-tab">5. ローカル MP3 音源分離タブ</h2>
+
+  <img src="manual_assets/img_local_tab.png" alt="ローカル MP3 音源分離タブ" class="screenshot">
+  <p class="caption">▲ ローカル MP3 音源分離タブ</p>
+
+  <p>手持ちの音声ファイルを音源分離したい場合に使用します。YouTube からのダウンロードは行いません。</p>
+
+  <h3>ファイル・フォルダの追加方法</h3>
+  <table>
+    <thead><tr><th>方法</th><th>操作</th></tr></thead>
+    <tbody>
+      <tr><td>ファイル選択ダイアログ</td><td><strong>「📄 ファイルを追加...」</strong> ボタン</td></tr>
+      <tr><td>フォルダ一括追加</td><td><strong>「📁 フォルダを追加...」</strong> ボタン（サブフォルダを再帰的に検索）</td></tr>
+      <tr><td>ドラッグ＆ドロップ</td><td>ファイルやフォルダを画面上にドロップ</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>対応フォーマット:</strong>
+    <code>.mp3</code> <code>.wav</code> <code>.flac</code> <code>.ogg</code>
+    <code>.m4a</code> <code>.aac</code> <code>.opus</code> <code>.wma</code>
+  </p>
+
+  <h3>分離スタートの手順</h3>
+  <ol class="steps">
+    <li>抽出したいパート（Vocal, Guitar, Bass, Drums, Piano, その他）にチェックを入れます。</li>
+    <li>出力先フォルダを確認・変更します。</li>
+    <li><strong>「▶ 分離スタート」</strong> ボタンをクリックします。</li>
+    <li>すでに分離完了（🎵）のファイルはスキップされます。</li>
+  </ol>
+
+  <div class="box box-warn">
+    <div class="head">⚠️ 初回実行時の注意</div>
+    AI モデル（htdemucs_6s）を自動ダウンロードします（約 <strong>400MB</strong>）。
+    2 回目以降はキャッシュが使われるため高速に開始されます。
+  </div>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="status">6. 状態アイコンの見方</h2>
+
+  <img src="manual_assets/img_status.png" alt="状態アイコン一覧" class="screenshot screenshot-sm">
+  <p class="caption">▲ 状態アイコン一覧</p>
+
+  <table>
+    <thead><tr><th>表示</th><th>意味</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-dim">— 未処理</span></td>
+        <td>まだ処理が開始されていない状態</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-wait">⏳ 待機中</span></td>
+        <td>キューに入り、処理開始を待っている</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-dl">⬇ XX%</span></td>
+        <td>ダウンロード中（進捗バー付き）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-cyan">🔄 変換中...</span></td>
+        <td>MP3 への変換処理中（不定プログレスバー）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-done">〇 完了</span></td>
+        <td>ダウンロード完了（音源分離なし）</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-wait">🔬 音源分離中...</span></td>
+        <td>Demucs による音源分離を実行中</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-cyan">🎵 分離完了</span></td>
+        <td>全処理が完了した最終状態</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-error">✕ エラー</span></td>
+        <td>エラーが発生。<strong>クリックすると詳細ダイアログが表示されます</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="output">7. 出力ファイルの構成</h2>
+
+  <img src="manual_assets/img_output.png" alt="出力ファイル構成" class="screenshot">
+  <p class="caption">▲ 出力ファイル構成（音源分離あり）</p>
+
+  <h3>音源分離あり（パートにチェック済み）</h3>
+  <div class="file-tree">
+    <span class="dir">Downloads\</span><br>
+    <span class="com">└─</span> <span class="dir">曲名\</span><span class="note">← 曲名のサブフォルダが自動作成</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;├─</span> <span class="mp3">曲名.mp3</span><span class="note">← ダウンロードされた音声</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">vocals.mp3</span><span class="note">← ボーカル</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">guitar.mp3</span><span class="note">← ギター</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">bass.mp3</span><span class="note">← ベース</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">drums.mp3</span><span class="note">← ドラム</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">piano.mp3</span><span class="note">← ピアノ</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;└─</span> <span class="stem">other.mp3</span><span class="note">← その他（弦楽器・シンセ等）</span>
+  </div>
+
+  <h3>音源分離なし（パート未選択）</h3>
+  <div class="file-tree">
+    <span class="dir">Downloads\</span><br>
+    <span class="com">└─</span> <span class="mp3">曲名.mp3</span><span class="note">← サブフォルダなし、直下に保存</span>
+  </div>
+
+  <h3>動画をダウンロード (MP4) チェックあり</h3>
+  <div class="file-tree">
+    <span class="dir">Downloads\</span><br>
+    <span class="com">└─</span> <span class="dir">曲名\</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;├─</span> <span class="mp3">曲名.mp4</span><span class="note">← 映像付き動画</span><br>
+    <span class="com">&nbsp;&nbsp;&nbsp;└─</span> <span class="mp3">曲名.mp3</span><span class="note">← 映像から抽出した音声</span>
+  </div>
+
+  <div class="box box-info">
+    <div class="head">💡 ローカル音源分離の出力先</div>
+    ローカルタブで分離した場合、<strong>出力先フォルダ / ファイル名（拡張子なし）/</strong> というサブフォルダが作成され、その中に各 stem の MP3 が保存されます。
+  </div>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="faq">8. よくある質問</h2>
+
+  <details>
+    <summary>ダウンロードが「エラー」になる</summary>
+    <div class="faq-body">
+      YouTube 側のレート制限や動画の地域制限が原因の場合があります。
+      しばらく待ってから右クリック →「🔄 再ダウンロード」で再試行してください。
+      また <code>yt-dlp</code> のバージョンが古い場合も失敗することがあります。
+      <pre>pip install -U yt-dlp</pre>
+      でアップデートすると解決する場合があります。
+    </div>
+  </details>
+
+  <details>
+    <summary>音源分離がとても遅い</summary>
+    <div class="faq-body">
+      <strong>初回:</strong> AI モデルのダウンロード（約 400MB）が必要です。<br>
+      <strong>GPU なし PC:</strong> CPU 処理となるため 1 曲あたり数分〜十数分かかる場合があります。
+      「並列数」を <code>1</code> に下げると安定して処理できます。<br>
+      <strong>GPU あり PC:</strong> CUDA 対応の PyTorch が入っていれば自動で GPU が使用されます。
+    </div>
+  </details>
+
+  <details>
+    <summary>リストを閉じたら消えてしまった</summary>
+    <div class="faq-body">
+      ダウンロードリストは <code>download_list.json</code> に自動保存されます。
+      アプリを再起動すると前回のリストが復元されます。
+      <code>download_list.json</code> は EXE / <code>app.py</code> と同じフォルダに作成されます。
+    </div>
+  </details>
+
+  <details>
+    <summary>モデルのキャッシュはどこに保存される？</summary>
+    <div class="faq-body">
+      <strong>EXE 版:</strong> <code>&lt;EXE と同じフォルダ&gt;\models\hub\checkpoints\</code><br>
+      <strong>開発版 (app.py):</strong> <code>youtube_dl\models\hub\checkpoints\</code><br>
+      ファイル名は <code>*.th</code> 形式です。初回以降は再ダウンロードされません。
+    </div>
+  </details>
+
+  <details>
+    <summary>プレイリスト全体をまとめてダウンロードしたい</summary>
+    <div class="faq-body">
+      現バージョンではプレイリスト URL を追加した場合、先頭の 1 曲のみ取得されます。
+      プレイリスト内の各動画 URL を個別に追加して対応してください。
+    </div>
+  </details>
+
+  <details>
+    <summary>追加できる URL の上限は？</summary>
+    <div class="faq-body">
+      1 リストあたり最大 <strong>1000 件</strong>まで登録できます。上限を超えた場合、古いエントリが自動的に削除されます。
+    </div>
+  </details>
+
+  <hr>
+  <p style="text-align:center; color: var(--dim); font-size: 12px;">
+    YouTube Audio Downloader マニュアル — 2026年5月
+  </p>
+
+</main>
+</body>
+</html>

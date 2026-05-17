@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+    font-size: 13px;
+    width: 800px;
+    height: 400px;
+    overflow: hidden;
+    padding: 28px;
+  }
+  h2 { color: #89b4fa; margin-bottom: 20px; font-size: 15px; }
+  .tree {
+    background: #181825;
+    border: 1px solid #45475a;
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-family: "Cascadia Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 2;
+  }
+  .dir { color: #89b4fa; font-weight: bold; }
+  .mp3 { color: #a6e3a1; }
+  .stem { color: #89dceb; }
+  .note { color: #f9e2af; font-size: 11px; font-style: italic; margin-left: 4px; }
+  .dim { color: #585b70; }
+</style>
+</head>
+<body>
+  <h2>出力ファイル構成（音源分離あり）</h2>
+  <div class="tree">
+    <span class="dir">Downloads\</span><br>
+    <span class="dim">└─</span> <span class="dir">Superfly 愛をこめて花束を\</span>  <span class="note">← 曲名フォルダ（自動作成）</span><br>
+    <span class="dim">&nbsp;&nbsp;&nbsp;├─</span> <span class="mp3">Superfly 愛をこめて花束を.mp3</span>  <span class="note">← ダウンロードされた音声</span><br>
+    <span class="dim">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">vocals.mp3</span>  <span class="note">← ボーカル</span><br>
+    <span class="dim">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">guitar.mp3</span>  <span class="note">← ギター</span><br>
+    <span class="dim">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">bass.mp3</span>  <span class="note">← ベース</span><br>
+    <span class="dim">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">drums.mp3</span>  <span class="note">← ドラム</span><br>
+    <span class="dim">&nbsp;&nbsp;&nbsp;├─</span> <span class="stem">piano.mp3</span>  <span class="note">← ピアノ</span><br>
+    <span class="dim">&nbsp;&nbsp;&nbsp;└─</span> <span class="stem">other.mp3</span>  <span class="note">← その他 (弦楽器など)</span><br>
+    <br>
+    <span class="note">※ 音源分離なしの場合は曲名フォルダは作成されません（Downloads 直下に .mp3 1ファイルのみ）</span>
+  </div>
+</body>
+</html>

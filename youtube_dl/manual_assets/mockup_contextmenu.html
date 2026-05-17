@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+    font-size: 13px;
+    width: 600px;
+    height: 280px;
+    overflow: hidden;
+    padding: 24px;
+  }
+  h2 { color: #89b4fa; margin-bottom: 16px; font-size: 15px; }
+  .menu {
+    background: #313244;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    width: 220px;
+    padding: 4px 0;
+    box-shadow: 4px 4px 16px rgba(0,0,0,0.5);
+  }
+  .menu-item {
+    padding: 10px 18px;
+    color: #cdd6f4;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .menu-item:hover { background: #45475a; }
+  .separator { height: 1px; background: #45475a; margin: 2px 0; }
+  .hint {
+    color: #585b70;
+    font-size: 12px;
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <h2>右クリックメニュー（テーブル行）</h2>
+  <div class="menu">
+    <div class="menu-item">🔄 &nbsp;再ダウンロード</div>
+    <div class="separator"></div>
+    <div class="menu-item">🗑 &nbsp;選択行を削除</div>
+  </div>
+  <div class="hint">
+    テーブルの行を右クリックすると表示されます。<br>
+    複数行を選択（Ctrl+クリック）してまとめて操作できます。
+  </div>
+</body>
+</html>

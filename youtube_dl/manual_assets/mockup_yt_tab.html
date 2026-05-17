@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: "Segoe UI", "Yu Gothic UI", sans-serif;
+    font-size: 13px;
+    width: 1100px;
+    height: 720px;
+    overflow: hidden;
+  }
+  .window {
+    width: 1100px;
+    height: 720px;
+    display: flex;
+    flex-direction: column;
+  }
+  .titlebar {
+    background: #181825;
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 13px;
+    border-bottom: 1px solid #45475a;
+    color: #89b4fa;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .titlebar span { font-size: 16px; }
+  .tabs {
+    display: flex;
+    background: #313244;
+    border-bottom: 1px solid #45475a;
+    padding: 0 8px;
+    padding-top: 6px;
+  }
+  .tab {
+    padding: 8px 22px;
+    border: 1px solid #45475a;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    margin-right: 2px;
+    cursor: pointer;
+    color: #6c7086;
+    background: #313244;
+  }
+  .tab.active {
+    background: #1e1e2e;
+    color: #89b4fa;
+    font-weight: bold;
+  }
+  .content {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #1e1e2e;
+    border: 1px solid #45475a;
+    border-top: none;
+    overflow: hidden;
+  }
+  .row { display: flex; align-items: center; gap: 8px; }
+  label { color: #cdd6f4; white-space: nowrap; }
+  input[type=text], .readonly-input {
+    flex: 1;
+    background: #313244;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #cdd6f4;
+    height: 36px;
+    font-size: 13px;
+  }
+  .readonly-input { background: #181825; height: 32px; }
+  .btn {
+    background: #89b4fa;
+    color: #1e1e2e;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    padding: 0 12px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .btn.sm { height: 32px; }
+  .btn:hover { background: #b4d0fa; }
+  .table-wrap { flex: 1; overflow: hidden; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #181825;
+    border: 1px solid #45475a;
+  }
+  th {
+    background: #313244;
+    padding: 6px;
+    font-weight: bold;
+    color: #cdd6f4;
+    border-bottom: 1px solid #45475a;
+    text-align: left;
+  }
+  td {
+    padding: 0;
+    border-bottom: 1px solid #313244;
+    vertical-align: middle;
+  }
+  .thumb-cell { width: 135px; height: 80px; text-align: center; }
+  .thumb-cell img { width: 120px; height: 68px; object-fit: cover; border-radius: 4px; }
+  .status-col { width: 130px; text-align: center; padding: 8px; }
+  .status-done { color: #a6e3a1; font-weight: bold; font-size: 13px; }
+  .status-wait { color: #cba6f7; font-size: 12px; }
+  .status-dl { color: #f9e2af; font-size: 12px; }
+  .status-idle { color: #585b70; font-size: 12px; }
+  .status-sep { color: #89dceb; font-weight: bold; font-size: 13px; }
+  .title-cell { padding: 4px 8px; color: #cdd6f4; }
+  .url-cell { padding: 4px 8px; color: #6c7086; font-size: 11px; }
+  .lbl-count { color: #585b70; font-size: 12px; }
+  fieldset {
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 8px 16px;
+    padding-top: 12px;
+  }
+  legend {
+    color: #cdd6f4;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 0 4px;
+  }
+  .checks { display: flex; gap: 20px; align-items: center; flex: 1; }
+  .check-item { display: flex; align-items: center; gap: 6px; }
+  .check-box {
+    width: 15px; height: 15px;
+    border: 1px solid #89b4fa;
+    border-radius: 3px;
+    background: #313244;
+  }
+  .check-box.checked { background: #89b4fa; }
+  .progress-bar {
+    height: 14px;
+    background: #313244;
+    border: 1px solid #45475a;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 3px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #89b4fa;
+    border-radius: 2px;
+  }
+  .spinbox {
+    background: #313244;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 14px;
+    width: 80px; height: 28px;
+    text-align: center;
+  }
+  .placeholder { color: #585b70; }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="titlebar">
+    <span>🎬</span> YouTube Audio Downloader
+  </div>
+  <div class="tabs">
+    <div class="tab active">🎬  YouTube ダウンロード</div>
+    <div class="tab">🎸  ローカル MP3 音源分離</div>
+  </div>
+  <div class="content">
+    <!-- URL入力行 -->
+    <div class="row">
+      <label>URL:</label>
+      <input type="text" value="" style="flex:1;height:36px;" placeholder="YouTube URL を入力して Enter または「追加」ボタンを押してください" class="placeholder" readonly>
+      <button class="btn">追加</button>
+    </div>
+    <!-- 出力先行 -->
+    <div class="row">
+      <label>出力先:</label>
+      <div class="readonly-input" style="flex:1;display:flex;align-items:center;">C:\Users\USER\Downloads</div>
+      <button class="btn sm">出力先変更...</button>
+      <button class="btn sm">📁 フォルダを開く</button>
+    </div>
+    <!-- テーブル -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:135px">サムネイル</th>
+            <th>タイトル</th>
+            <th>URL</th>
+            <th style="width:130px">状態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="height:80px">
+            <td class="thumb-cell">
+              <img src="https://i.ytimg.com/vi/gU5oN0KVofU/mqdefault.jpg" onerror="this.style.background='#313244';this.style.width='120px';this.style.height='68px'">
+            </td>
+            <td class="title-cell">Superfly 『愛をこめて花束を』Music Video</td>
+            <td class="url-cell">https://www.youtube.com/watch?v=gU5oN0KVofU</td>
+            <td class="status-col"><span class="status-sep">🎵  分離完了</span></td>
+          </tr>
+          <tr style="height:80px">
+            <td class="thumb-cell">
+              <div style="background:#313244;width:120px;height:68px;border-radius:4px;display:inline-block;line-height:68px;color:#585b70;font-size:11px;">サムネイル</div>
+            </td>
+            <td class="title-cell">Sigma Harmonics OST - Hope - Dance of the Baying Hound</td>
+            <td class="url-cell">https://www.youtube.com/watch?v=pCuOBroAA5M</td>
+            <td class="status-col">
+              <div style="color:#f9e2af;font-size:12px;">⬇  72%</div>
+              <div class="progress-bar" style="margin:4px auto;width:110px"><div class="progress-fill" style="width:72%"></div></div>
+            </td>
+          </tr>
+          <tr style="height:80px">
+            <td class="thumb-cell">
+              <div style="background:#313244;width:120px;height:68px;border-radius:4px;display:inline-block;line-height:68px;color:#585b70;font-size:11px;">サムネイル</div>
+            </td>
+            <td class="title-cell">Sigma Harmonics OST - Gentle Tones</td>
+            <td class="url-cell">https://www.youtube.com/watch?v=ZdQalDIKoHg</td>
+            <td class="status-col"><span class="status-wait">⏳  待機中</span></td>
+          </tr>
+          <tr style="height:80px">
+            <td class="thumb-cell">
+              <div style="background:#313244;width:120px;height:68px;border-radius:4px;display:inline-block;line-height:68px;color:#585b70;font-size:11px;">サムネイル</div>
+            </td>
+            <td class="title-cell">Sigma Harmonics OST - Rippling Dreams</td>
+            <td class="url-cell">https://www.youtube.com/watch?v=JV9vbBHEPgg</td>
+            <td class="status-col"><span class="status-idle">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="lbl-count">登録数: 4 / 1000</div>
+
+    <!-- 音源分離オプション -->
+    <fieldset>
+      <legend>音源分離 — 抽出するパートを選択（何も選択しなければ分離スキップ・ダウンロード後に自動実行）</legend>
+      <div class="row">
+        <div class="checks">
+          <div class="check-item"><div class="check-box"></div> Vocal</div>
+          <div class="check-item"><div class="check-box"></div> Guitar</div>
+          <div class="check-item"><div class="check-box"></div> Bass</div>
+          <div class="check-item"><div class="check-box"></div> Drums</div>
+          <div class="check-item"><div class="check-box"></div> Piano</div>
+          <div class="check-item"><div class="check-box"></div> その他</div>
+          <div class="check-item"><div class="check-box"></div> 動画をダウンロード (MP4)</div>
+        </div>
+        <label style="white-space:nowrap">並列数:</label>
+        <div class="spinbox">3</div>
+      </div>
+    </fieldset>
+
+    <!-- ボタン行 -->
+    <div class="row">
+      <button class="btn" style="flex:1;height:44px;font-size:14px;">▶  スタート</button>
+      <button class="btn" style="flex:0 0 120px;height:44px;background:#585b70;color:#cdd6f4;">リストクリア</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
