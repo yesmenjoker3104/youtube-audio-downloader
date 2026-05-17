@@ -73,8 +73,8 @@ jobs:
       - name: Install dependencies
         working-directory: youtube_dl
         run: |
-          pip install pyinstaller Pillow yt-dlp PySide6 pydub demucs
-          pip install torch torchaudio
+          $pythonLocation/bin/pip3 install pyinstaller Pillow yt-dlp PySide6 pydub demucs
+          $pythonLocation/bin/pip3 install torch torchaudio
 
       - name: Install ffmpeg static binary (macOS)
         working-directory: youtube_dl
@@ -91,7 +91,7 @@ jobs:
 
       - name: Build with PyInstaller
         working-directory: youtube_dl
-        run: python3 -m pyinstaller youtube_dl_mac.spec --noconfirm
+        run: $pythonLocation/bin/python3 -m pyinstaller youtube_dl_mac.spec --noconfirm
 
       - name: Remove quarantine attribute
         working-directory: youtube_dl
