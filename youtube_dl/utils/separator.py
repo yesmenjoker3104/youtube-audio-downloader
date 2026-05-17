@@ -6,6 +6,7 @@ Vocal / Drums / Bass / Other の4ステムに分離する。
 from __future__ import annotations
 
 import os
+import sys
 import subprocess
 import shutil
 from pathlib import Path
