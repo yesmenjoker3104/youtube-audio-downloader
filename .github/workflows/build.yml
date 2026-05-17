@@ -23,19 +23,19 @@ jobs:
 
       - name: Install PyInstaller (ensure it's always available)
         working-directory: youtube_dl
-        run: pip install pyinstaller
+        run: python -m pip install pyinstaller
 
       - name: Install PyTorch (CPU, Windows)
         working-directory: youtube_dl
-        run: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+        run: python -m pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install demucs
         working-directory: youtube_dl
-        run: pip install demucs
+        run: python -m pip install demucs
 
       - name: Install remaining packages
         working-directory: youtube_dl
-        run: pip install Pillow yt-dlp PySide6 pydub
+        run: python -m pip install Pillow yt-dlp PySide6 pydub
 
       - name: Download ffmpeg (Windows)
         working-directory: youtube_dl
@@ -55,7 +55,7 @@ jobs:
 
       - name: Build with PyInstaller
         working-directory: youtube_dl
-        run: python -m pyinstaller youtube_dl.spec --noconfirm
+        run: pyinstaller youtube_dl.spec --noconfirm
 
       - name: Upload artifact (Windows)
         uses: actions/upload-artifact@v4
@@ -74,26 +74,21 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Python 3.11
-        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Create virtual environment
+      - name: Install PyInstaller
         working-directory: youtube_dl
-        run: ${{ steps.setup-python.outputs.python-path }} -m venv .venv
+        run: pip install pyinstaller
 
-      - name: Install PyInstaller (ensure it's always available)
+      - name: Install torch + demucs
         working-directory: youtube_dl
-        run: .venv/bin/pip install pyinstaller
-
-      - name: Install torch + demucs together
-        working-directory: youtube_dl
-        run: .venv/bin/pip install torch torchaudio demucs
+        run: pip install torch torchaudio demucs
 
       - name: Install remaining packages
         working-directory: youtube_dl
-        run: .venv/bin/pip install Pillow yt-dlp PySide6 pydub
+        run: pip install Pillow yt-dlp PySide6 pydub
 
       - name: Install ffmpeg static binary (macOS)
         working-directory: youtube_dl
@@ -110,7 +105,7 @@ jobs:
 
       - name: Build with PyInstaller
         working-directory: youtube_dl
-        run: .venv/bin/python3 -m pyinstaller youtube_dl_mac.spec --noconfirm
+        run: pyinstaller youtube_dl_mac.spec --noconfirm
 
       - name: Remove quarantine attribute
         working-directory: youtube_dl
