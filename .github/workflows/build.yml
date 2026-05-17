@@ -20,13 +20,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
 
-      - name: Install dependencies
+      - name: Install PyTorch (CPU, Windows)
         working-directory: youtube_dl
-        run: |
-          pip install pyinstaller Pillow yt-dlp PySide6 pydub demucs
-          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+        run: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install demucs
+        working-directory: youtube_dl
+        run: pip install demucs
+
+      - name: Install core packages
+        working-directory: youtube_dl
+        run: pip install pyinstaller Pillow yt-dlp PySide6 pydub
 
       - name: Download ffmpeg (Windows)
         working-directory: youtube_dl
@@ -73,12 +78,17 @@ jobs:
         working-directory: youtube_dl
         run: python3 -m venv .venv
 
-      - name: Install dependencies
+      - name: Install PyTorch (macOS)
         working-directory: youtube_dl
-        run: |
-          .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install pyinstaller Pillow yt-dlp PySide6 pydub demucs
-          .venv/bin/pip install torch torchaudio
+        run: .venv/bin/pip install torch torchaudio
+
+      - name: Install demucs
+        working-directory: youtube_dl
+        run: .venv/bin/pip install demucs
+
+      - name: Install core packages
+        working-directory: youtube_dl
+        run: .venv/bin/pip install pyinstaller Pillow yt-dlp PySide6 pydub
 
       - name: Install ffmpeg static binary (macOS)
         working-directory: youtube_dl
