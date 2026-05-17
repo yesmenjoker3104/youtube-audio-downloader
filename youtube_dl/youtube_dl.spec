@@ -24,12 +24,12 @@ torchaudio_datas, torchaudio_binaries, torchaudio_hiddenimports = collect_all('t
 # soundfile (torchcodec の代替保存バックエンド)
 soundfile_datas, soundfile_binaries, soundfile_hiddenimports = collect_all('soundfile')
 
-# このプロジェクトの demucs/utils (separator.py など)
-_project_demucs = str(Path(SPECPATH).parent / 'demucs')
+# プロジェクト内 utils (demucs/utils からコピー済み)
+_local_utils = str(Path(SPECPATH) / 'utils')
 
 a = Analysis(
     ['app.py'],
-    pathex=[str(Path(SPECPATH).parent / 'demucs')],
+    pathex=[str(Path(SPECPATH))],
     binaries=[
         # ffmpeg / ffprobe バイナリ (build.ps1 が ffmpeg/ へ配置)
         ('ffmpeg/ffmpeg.exe',  '.'),
@@ -42,8 +42,8 @@ a = Analysis(
     ],
     datas=[
         ('icon.png', '.'),
-        # プロジェクト内 demucs/utils をバンドル (separator.py 等)
-        (_project_demucs + '/utils', 'utils'),
+        # プロジェクト内 utils をバンドル (separator.py 等)
+        (_local_utils, 'utils'),
         *yt_dlp_datas,
         *certifi_datas,
         *demucs_datas,

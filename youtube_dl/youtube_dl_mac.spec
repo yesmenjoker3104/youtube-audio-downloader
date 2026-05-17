@@ -24,15 +24,15 @@ torchaudio_datas, torchaudio_binaries, torchaudio_hiddenimports = collect_all('t
 # soundfile
 soundfile_datas, soundfile_binaries, soundfile_hiddenimports = collect_all('soundfile')
 
-# プロジェクト内 demucs/utils
-_project_demucs = str(Path(SPECPATH).parent / 'demucs')
+# プロジェクト内 utils (demucs/utils からコピー済み)
+_local_utils = str(Path(SPECPATH) / 'utils')
 
 # macOS 用 ffmpeg バイナリ (build_mac.sh が ffmpeg_mac/ へ配置)
 _ffmpeg_dir = str(Path(SPECPATH) / 'ffmpeg_mac')
 
 a = Analysis(
     ['app.py'],
-    pathex=[str(Path(SPECPATH).parent / 'demucs')],
+    pathex=[str(Path(SPECPATH))],
     binaries=[
         # macOS 用 ffmpeg バイナリ
         (str(Path(_ffmpeg_dir) / 'ffmpeg'),  '.'),
@@ -45,7 +45,7 @@ a = Analysis(
     ],
     datas=[
         ('icon.png', '.'),
-        (_project_demucs + '/utils', 'utils'),
+        (_local_utils, 'utils'),
         *yt_dlp_datas,
         *certifi_datas,
         *demucs_datas,
