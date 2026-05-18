@@ -442,7 +442,8 @@ class SeparateWorker(QRunnable):
                 if not wav_path or not Path(wav_path).exists():
                     continue
                 self.sig.sep_progress.emit(url, f'MP3 変換中: {stem_name}')
-                mp3_out = str(final_dir / f'{stem_name}.mp3')
+                original_stem = Path(self.mp3_path).stem
+                mp3_out = str(final_dir / f'【{stem_name}】{original_stem}.mp3')
                 audio = AudioSegment.from_file(wav_path)
                 audio.export(mp3_out, format='mp3', bitrate='192k')
 
@@ -628,7 +629,8 @@ class LocalSepWorker(QRunnable):
                 if not wav_path or not Path(wav_path).exists():
                     continue
                 self.sig.sep_progress.emit(path, f'MP3 変換中: {stem_name}')
-                mp3_out = str(stem_folder / f'{stem_name}.mp3')
+                original_stem = Path(path).stem
+                mp3_out = str(stem_folder / f'【{stem_name}】{original_stem}.mp3')
                 audio = AudioSegment.from_file(wav_path)
                 audio.export(mp3_out, format='mp3', bitrate='192k')
                 try:
