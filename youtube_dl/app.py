@@ -13,6 +13,7 @@ import os
 import re
 import json
 import time
+import threading
 import shutil
 import traceback
 import logging
@@ -352,6 +353,8 @@ def _parse_demucs_line(line: str):
         return 'モデルをDL中... (~400MB) 接続中...'
     if 'Connecting' in line or 'connecting' in line:
         return 'モデルサーバーに接続中...'
+    if 'Separating' in line or 'applying model' in line.lower():
+        return 'AI分離処理中 (時間がかかります...)'
     m_size = _RE_DL_SIZE.search(line)
     if m_size:
         cur, cu = float(m_size.group(1)), m_size.group(2).upper()
@@ -410,7 +413,23 @@ class SeparateWorker(QRunnable):
                 if txt:
                     self.sig.sep_progress.emit(_url, txt)
 
-            wav_stems = sep.separate(self.mp3_path, sep_tmp_dir, self.stems, progress_callback=_cb)
+            # ハートビート: tqdm 更新がない長時間処理中でもUIに経過時間を表示
+            _hb_stop = threading.Event()
+            _hb_start = time.monotonic()
+
+            def _heartbeat(_u=url, _e=_hb_stop):
+                while not _e.wait(20):
+                    elapsed = int(time.monotonic() - _hb_start)
+                    self.sig.sep_progress.emit(
+                        _u, f'AI分離処理中... ({elapsed // 60}分{elapsed % 60}秒経過)')
+
+            _hb_thread = threading.Thread(target=_heartbeat, daemon=True)
+            _hb_thread.start()
+            try:
+                wav_stems = sep.separate(self.mp3_path, sep_tmp_dir, self.stems, progress_callback=_cb)
+            finally:
+                _hb_stop.set()
+                _hb_thread.join(timeout=2)
 
             try:
                 from pydub import AudioSegment  # type: ignore
@@ -580,7 +599,23 @@ class LocalSepWorker(QRunnable):
                 if txt:
                     self.sig.sep_progress.emit(_path, txt)
 
-            wav_stems = sep.separate(path, sep_tmp_dir, self.stems, progress_callback=_cb)
+            # ハートビート: tqdm 更新がない長時間処理中でもUIに経過時間を表示
+            _hb_stop = threading.Event()
+            _hb_start = time.monotonic()
+
+            def _heartbeat(_p=path, _e=_hb_stop):
+                while not _e.wait(20):
+                    elapsed = int(time.monotonic() - _hb_start)
+                    self.sig.sep_progress.emit(
+                        _p, f'AI分離処理中... ({elapsed // 60}分{elapsed % 60}秒経過)')
+
+            _hb_thread = threading.Thread(target=_heartbeat, daemon=True)
+            _hb_thread.start()
+            try:
+                wav_stems = sep.separate(path, sep_tmp_dir, self.stems, progress_callback=_cb)
+            finally:
+                _hb_stop.set()
+                _hb_thread.join(timeout=2)
 
             try:
                 from pydub import AudioSegment  # type: ignore
