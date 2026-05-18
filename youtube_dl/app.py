@@ -339,8 +339,9 @@ class DownloadWorker(QRunnable):
 
 
 # ── demucs 進捗テキストパーサー ─────────────────────────────────────────────────
+# 例: "3.81M/381M" "56.9MB/380MB" "0.00B/381M" など
 _RE_DL_SIZE = re.compile(
-    r'(\d+(?:\.\d+)?)\s*([MmGgKk])B?/(\d+(?:\.\d+)?)\s*([MmGgKk])B?'
+    r'(\d+(?:\.\d+)?)\s*([KkMmGg])[iI]?[Bb]?/(\d+(?:\.\d+)?)\s*([KkMmGg])[iI]?[Bb]?'
 )
 _RE_PCT = re.compile(r'(\d+)%\|')
 
@@ -348,7 +349,9 @@ _RE_PCT = re.compile(r'(\d+)%\|')
 def _parse_demucs_line(line: str):
     """demucs/torch stderr 1行からUI用進捗テキストを返す。表示不要なら None。"""
     if 'Downloading' in line and ('http' in line or 'fbaipublicfiles' in line):
-        return 'モデルをダウンロード中... (~400MB)'
+        return 'モデルをDL中... (~400MB) 接続中...'
+    if 'Connecting' in line or 'connecting' in line:
+        return 'モデルサーバーに接続中...'
     m_size = _RE_DL_SIZE.search(line)
     if m_size:
         cur, cu = float(m_size.group(1)), m_size.group(2).upper()
@@ -398,7 +401,7 @@ class SeparateWorker(QRunnable):
                 'TORCH_HOME', str(Path.home() / '.cache' / 'torch')
             )) / 'hub' / 'checkpoints'
             if not (_ckpt_dir.exists() and any(_ckpt_dir.glob('*.th'))):
-                self.sig.sep_progress.emit(url, 'モデルをDL中... (初回のみ ~400MB)')
+                self.sig.sep_progress.emit(url, 'モデルをDL中... (初回のみ ~400MB、回線によっては数十分かかります)')
 
             sep = _AudioSeparator(model='htdemucs_6s')
 
@@ -568,7 +571,7 @@ class LocalSepWorker(QRunnable):
             if _ckpt_dir.exists() and any(_ckpt_dir.glob('*.th')):
                 self.sig.sep_progress.emit(path, '音源分離中...')
             else:
-                self.sig.sep_progress.emit(path, 'モデルをDL中... (初回のみ ~400MB)')
+                self.sig.sep_progress.emit(path, 'モデルをDL中... (初回のみ ~400MB、回線によっては数十分かかります)')
 
             sep = _AudioSeparator(model='htdemucs_6s')
 

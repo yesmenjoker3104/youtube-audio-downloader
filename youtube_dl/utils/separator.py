@@ -155,6 +155,9 @@ class AudioSeparator:
                 models_dir = str(Path(sys.executable).parent / 'models')
                 os.environ.setdefault('TORCH_HOME', models_dir)
             _patch_torchaudio_save()
+            import socket as _socket
+            _orig_timeout = _socket.getdefaulttimeout()
+            _socket.setdefaulttimeout(120)  # 2分間データが来なければタイムアウト
             try:
                 _demucs_main()
             except SystemExit as exc:
@@ -166,6 +169,7 @@ class AudioSeparator:
             finally:
                 sys.argv = old_argv
                 sys.stdout, sys.stderr = old_stdout, old_stderr
+                _socket.setdefaulttimeout(_orig_timeout)
 
         stems = self._collect_output_paths(audio_path, output_dir)
         if requested_stems:
