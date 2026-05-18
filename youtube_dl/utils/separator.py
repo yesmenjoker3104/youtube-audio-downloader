@@ -13,6 +13,24 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 
+def _patch_torchaudio_save() -> None:
+    """PyInstaller バンドル内で torchaudio のバックエンド検出が失敗する場合に
+    soundfile を直接使うよう torchaudio.save をモンキーパッチする。"""
+    try:
+        import soundfile as sf  # noqa: F401
+        import torchaudio
+
+        def _save_via_soundfile(filepath, src, sample_rate, **kwargs):  # type: ignore[no-untyped-def]
+            wav = src.numpy()
+            if wav.ndim == 2:
+                wav = wav.T  # [channels, samples] -> [samples, channels]
+            sf.write(str(filepath), wav, samplerate=sample_rate)
+
+        torchaudio.save = _save_via_soundfile  # type: ignore[assignment]
+    except ImportError:
+        pass
+
+
 class AudioSeparator:
     """Demucsを使って音楽ファイルをステムに分離するクラス。
 
@@ -129,6 +147,7 @@ class AudioSeparator:
             old_stdout, old_stderr = sys.stdout, sys.stderr
             sys.argv = ["demucs"] + demucs_args
             sys.stdout = sys.stderr = writer  # type: ignore[assignment]
+            _patch_torchaudio_save()
             try:
                 _demucs_main()
             except SystemExit as exc:

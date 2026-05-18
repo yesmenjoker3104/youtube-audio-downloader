@@ -35,7 +35,7 @@ jobs:
 
       - name: Install remaining packages
         working-directory: youtube_dl
-        run: python -m pip install Pillow yt-dlp PySide6 pydub
+        run: python -m pip install Pillow yt-dlp PySide6 pydub soundfile
 
       - name: Download ffmpeg (Windows)
         working-directory: youtube_dl
@@ -88,7 +88,7 @@ jobs:
 
       - name: Install remaining packages
         working-directory: youtube_dl
-        run: pip install Pillow yt-dlp PySide6 pydub
+        run: pip install Pillow yt-dlp PySide6 pydub soundfile
 
       - name: Install ffmpeg static binary (macOS)
         working-directory: youtube_dl
