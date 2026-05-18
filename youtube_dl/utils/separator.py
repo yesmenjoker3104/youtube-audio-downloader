@@ -142,11 +142,18 @@ class AudioSeparator:
                 def flush(self) -> None:
                     pass
 
+                def isatty(self) -> bool:
+                    return False
+
             writer = _ProgressWriter()
             old_argv = sys.argv
             old_stdout, old_stderr = sys.stdout, sys.stderr
             sys.argv = ["demucs"] + demucs_args
             sys.stdout = sys.stderr = writer  # type: ignore[assignment]
+            # PyInstaller バンドルの場合、モデルキャッシュ先を exe 隣の models/ に設定
+            if getattr(sys, 'frozen', False):
+                models_dir = str(Path(sys.executable).parent / 'models')
+                os.environ.setdefault('TORCH_HOME', models_dir)
             _patch_torchaudio_save()
             try:
                 _demucs_main()
