@@ -360,7 +360,7 @@ def _parse_demucs_line(line: str):
         pct = int(m_pct.group(1)) if m_pct else min(int(cur / tot * 100), 100)
         return f'モデルDL中... {cur:.0f}{cu}B/{tot:.0f}{tu}B ({pct}%)'
     m_pct = _RE_PCT.search(line)
-    if m_pct and ('it/s' in line or 'sep' in line.lower()):
+    if m_pct and ('it/s' in line or 's/it' in line or 'sep' in line.lower()):
         return f'分離処理中... {m_pct.group(1)}%'
     return None
 
