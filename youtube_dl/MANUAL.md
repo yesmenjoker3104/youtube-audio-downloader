@@ -1,7 +1,7 @@
 # YouTube Audio Downloader — 使い方マニュアル
 
 **バージョン:** 1.0  
-**対応OS:** Windows 10 / 11
+**対応OS:** Windows 10 / 11 / macOS 12 以降（Apple Silicon・Intel）
 
 ---
 
@@ -57,6 +57,29 @@ python app.py
 
 > **依存ライブラリ:**  `pip install PySide6 yt-dlp demucs pydub Pillow`  
 > ffmpeg が PATH に含まれているか、EXE 版では `ffmpeg.exe` が同梱されている必要があります。
+
+---
+
+### macOS で起動する場合
+
+GitHub Actions でビルドされた macOS 版（`YoutubeAudioDownloader.app`）は、インターネットからダウンロードしたため **Gatekeeper の隔離属性** が付いています。
+そのままダブルクリックすると「開発元を確認できない」「壊れているため開けない」などのエラーが表示されます。
+
+**ターミナルで以下のコマンドを実行してから起動してください。**
+
+```bash
+xattr -cr /Applications/YoutubeAudioDownloader.app
+```
+
+| オプション | 意味 |
+|---|---|
+| `-c` | 拡張属性をすべてクリアする |
+| `-r` | .app バンドル内のファイルにも再帰的に適用する |
+
+> **コマンドの場所:** `Applications` フォルダ以外に置いた場合は、パスをそのフォルダに合わせてください。  
+> 例: デスクトップに置いた場合 → `xattr -cr ~/Desktop/YoutubeAudioDownloader.app`
+
+実行後、.app をダブルクリックすれば起動できます。
 
 ---
 
@@ -237,3 +260,12 @@ A. EXE 版は `<EXE と同じフォルダ>\models\` に保存されます。開�
 
 **Q. プレイリスト全体をまとめてダウンロードしたい**  
 A. 現バージョンではプレイリスト URL を追加した場合、先頭の 1 曲のみ取得されます。プレイリスト内の URL を個別に追加してください。
+
+**Q. macOS で「壊れているため開けません」と表示される**  
+A. ダウンロードした .app に Gatekeeper の隔離属性が付いているためです。ターミナルで以下を実行してから再度起動してください。
+
+```bash
+xattr -cr /Applications/YoutubeAudioDownloader.app
+```
+
+デスクトップなど別の場所に置いた場合はパスを変更してください（例: `~/Desktop/YoutubeAudioDownloader.app`）。
