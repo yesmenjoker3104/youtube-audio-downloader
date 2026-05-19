@@ -25,16 +25,25 @@ echo "=== [2/4] ffmpeg バイナリを確認 ==="
 FFMPEG_DIR="$SCRIPT_DIR/ffmpeg_mac"
 mkdir -p "$FFMPEG_DIR"
 
+ARCH=$(uname -m)
 if [ -f "$FFMPEG_DIR/ffmpeg" ] && [ -f "$FFMPEG_DIR/ffprobe" ]; then
     echo "  ffmpeg: 既に存在します。スキップします。"
 else
-    echo "  evermeet.cx から静的ビルドをダウンロード中..."
-    curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"  -o /tmp/ffmpeg.zip
-    curl -L "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip" -o /tmp/ffprobe.zip
-    unzip -o /tmp/ffmpeg.zip  -d "$FFMPEG_DIR/"
-    unzip -o /tmp/ffprobe.zip -d "$FFMPEG_DIR/"
+    if [ "$ARCH" = "arm64" ]; then
+        echo "  Apple Silicon 検出 — Homebrew の arm64 バイナリを使用します..."
+        brew install ffmpeg 2>/dev/null || true
+        cp "$(brew --prefix)/bin/ffmpeg"  "$FFMPEG_DIR/ffmpeg"
+        cp "$(brew --prefix)/bin/ffprobe" "$FFMPEG_DIR/ffprobe"
+        echo "  ffmpeg: Homebrew バイナリをコピー完了"
+    else
+        echo "  Intel Mac 検出 — evermeet.cx から静的ビルドをダウンロード中..."
+        curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"  -o /tmp/ffmpeg.zip
+        curl -L "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip" -o /tmp/ffprobe.zip
+        unzip -o /tmp/ffmpeg.zip  -d "$FFMPEG_DIR/"
+        unzip -o /tmp/ffprobe.zip -d "$FFMPEG_DIR/"
+        echo "  ffmpeg: ダウンロード完了 (静的ビルド)"
+    fi
     chmod +x "$FFMPEG_DIR/ffmpeg" "$FFMPEG_DIR/ffprobe"
-    echo "  ffmpeg: ダウンロード完了 (静的ビルド)"
 fi
 
 echo ""
@@ -42,7 +51,6 @@ echo "=== [3/4] 依存パッケージを確認 ==="
 pip install --quiet pyinstaller Pillow yt-dlp PySide6 pydub demucs
 
 # Apple Silicon (M1/M2/M3) は MPS バックエンドの torch を使用可能
-ARCH=$(uname -m)
 if [ "$ARCH" = "arm64" ]; then
     echo "  Apple Silicon 検出 — MPS 対応 torch をインストールします..."
     pip install --quiet torch torchaudio
