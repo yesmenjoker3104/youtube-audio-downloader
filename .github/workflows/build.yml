@@ -68,7 +68,7 @@ jobs:
   # macOS ビルド
   # ──────────────────────────────────────────────────────────────
   build-macos:
-    runs-on: macos-latest   # Apple Silicon (M1) ランナー
+    runs-on: macos-latest   # Apple Silicon (arm64) ランナー
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -94,11 +94,20 @@ jobs:
         working-directory: youtube_dl
         run: |
           mkdir -p ffmpeg_mac
-          # evermeet.cx の静的ビルドを使用（動的リンク不要 = dylib 依存なし）
-          curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip" -o /tmp/ffmpeg.zip
-          curl -L "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip" -o /tmp/ffprobe.zip
-          unzip -o /tmp/ffmpeg.zip  -d ffmpeg_mac/
-          unzip -o /tmp/ffprobe.zip -d ffmpeg_mac/
+          ARCH=$(uname -m)
+          echo "Architecture: $ARCH"
+          if [ "$ARCH" = "arm64" ]; then
+            # Apple Silicon: Homebrew の静的バイナリを使用
+            brew install ffmpeg
+            cp "$(brew --prefix)/bin/ffmpeg"  ffmpeg_mac/ffmpeg
+            cp "$(brew --prefix)/bin/ffprobe" ffmpeg_mac/ffprobe
+          else
+            # Intel: evermeet.cx の静的ビルドを使用（dylib 依存なし）
+            curl -L "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"  -o /tmp/ffmpeg.zip
+            curl -L "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip" -o /tmp/ffprobe.zip
+            unzip -o /tmp/ffmpeg.zip  -d ffmpeg_mac/
+            unzip -o /tmp/ffprobe.zip -d ffmpeg_mac/
+          fi
           chmod +x ffmpeg_mac/ffmpeg ffmpeg_mac/ffprobe
           # バイナリ確認
           file ffmpeg_mac/ffmpeg
