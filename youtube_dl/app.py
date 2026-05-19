@@ -101,6 +101,17 @@ def _find_bundled_ffmpeg() -> 'Path | None':
     return None
 
 
+def _open_path_in_explorer(path: str) -> None:
+    """OS に応じてファイルマネージャーでパスを開く。"""
+    import subprocess as _sp
+    if sys.platform == 'win32':
+        os.startfile(path)
+    elif sys.platform == 'darwin':
+        _sp.Popen(['open', path])
+    else:
+        _sp.Popen(['xdg-open', path])
+
+
 class AppSignals(QObject):
     """スレッド間通信用シグナル (全ワーカーで共有)"""
     info_ready   = Signal(str, str, str)         # url, title, thumb_url
@@ -911,7 +922,7 @@ class LocalSepWidget(QWidget):
 
     def _open_folder(self):
         if Path(self.output_dir).is_dir():
-            os.startfile(self.output_dir)
+            _open_path_in_explorer(self.output_dir)
         else:
             QMessageBox.warning(self, 'エラー', f'フォルダが存在しません:\n{self.output_dir}')
 
@@ -1464,7 +1475,7 @@ class MainWindow(QMainWindow):
     def _open_folder(self):
         path = self.output_dir
         if Path(path).is_dir():
-            os.startfile(path)
+            _open_path_in_explorer(path)
         else:
             QMessageBox.warning(self, "エラー", f"フォルダが存在しません:\n{path}")
 

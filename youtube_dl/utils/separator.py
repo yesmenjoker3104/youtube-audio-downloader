@@ -300,7 +300,7 @@ class AudioSeparator:
             ffmpeg_path, _ = self._find_ffmpeg_tools()
             ffmpeg_hint = (
                 f"検出済み ffmpeg: {ffmpeg_path}" if ffmpeg_path
-                else "ffmpeg.exe が見つかりませんでした。"
+                else "ffmpeg が見つかりませんでした。"
             )
             raise RuntimeError(
                 f"音声ファイルの WAV 変換に失敗しました: {exc}\n"
@@ -310,13 +310,20 @@ class AudioSeparator:
 
     def _find_ffmpeg_tools(self) -> Tuple[Optional[str], Optional[str]]:
         """ffmpeg / ffprobe 実行ファイルを探索して返す。"""
-        # PyInstaller frozen exe の場合、exe と同じフォルダに同梱した ffmpeg を最優先
+        # PyInstaller frozen exe の場合、_MEIPASS / exe 同フォルダに同梱した ffmpeg を最優先
         if getattr(sys, 'frozen', False):
-            _exe_dir = Path(sys.executable).parent
-            _ff  = _exe_dir / 'ffmpeg.exe'
-            _ffp = _exe_dir / 'ffprobe.exe'
-            if _ff.exists() and _ffp.exists():
-                return str(_ff), str(_ffp)
+            _search_dirs = []
+            # macOS .app では binaries は _MEIPASS (Frameworks/) に展開される
+            if hasattr(sys, '_MEIPASS'):
+                _search_dirs.append(Path(sys._MEIPASS))
+            _search_dirs.append(Path(sys.executable).parent)
+
+            for _d in _search_dirs:
+                for _ff_name, _ffp_name in (('ffmpeg', 'ffprobe'), ('ffmpeg.exe', 'ffprobe.exe')):
+                    _ff  = _d / _ff_name
+                    _ffp = _d / _ffp_name
+                    if _ff.exists() and _ffp.exists():
+                        return str(_ff), str(_ffp)
 
         ffmpeg_path = shutil.which("ffmpeg")
         ffprobe_path = shutil.which("ffprobe")
