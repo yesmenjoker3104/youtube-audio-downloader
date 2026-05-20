@@ -62,7 +62,7 @@ jobs:
         with:
           name: YoutubeAudioDownloader-Windows
           path: youtube_dl/dist/YoutubeAudioDownloader/
-          retention-days: 7
+          retention-days: 1
 
   # ──────────────────────────────────────────────────────────────
   # macOS ビルド
@@ -129,7 +129,7 @@ jobs:
         with:
           name: YoutubeAudioDownloader-macOS
           path: youtube_dl/dist/YoutubeAudioDownloader-macOS.zip
-          retention-days: 7
+          retention-days: 1
 
   # ──────────────────────────────────────────────────────────────
   # タグ push 時はリリースも自動作成
