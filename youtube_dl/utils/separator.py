@@ -150,10 +150,19 @@ class AudioSeparator:
             old_stdout, old_stderr = sys.stdout, sys.stderr
             sys.argv = ["demucs"] + demucs_args
             sys.stdout = sys.stderr = writer  # type: ignore[assignment]
-            # PyInstaller バンドルの場合、モデルキャッシュ先を exe 隣の models/ に設定
+            # PyInstaller バンドルの場合、モデルキャッシュ先をユーザーの書き込み可能なディレクトリに設定
+            # macOS の App Translocation により .app バンドル内は読み取り専用になるため、
+            # ~/Library/Application Support/YoutubeAudioDownloader/models を使用する
             if getattr(sys, 'frozen', False):
-                models_dir = str(Path(sys.executable).parent / 'models')
-                os.environ.setdefault('TORCH_HOME', models_dir)
+                if sys.platform == 'darwin':
+                    models_dir = str(
+                        Path.home() / 'Library' / 'Application Support'
+                        / 'YoutubeAudioDownloader' / 'models'
+                    )
+                else:
+                    models_dir = str(Path(sys.executable).parent / 'models')
+                os.makedirs(models_dir, exist_ok=True)
+                os.environ['TORCH_HOME'] = models_dir
             _patch_torchaudio_save()
             import socket as _socket
             _orig_timeout = _socket.getdefaulttimeout()
@@ -323,6 +332,12 @@ class AudioSeparator:
                     _ff  = _d / _ff_name
                     _ffp = _d / _ffp_name
                     if _ff.exists() and _ffp.exists():
+                        # macOS: PyInstaller がパーミッションを落とす場合があるため実行権限を付与
+                        if sys.platform == 'darwin':
+                            import stat as _stat
+                            for _bin in (_ff, _ffp):
+                                _mode = os.stat(str(_bin)).st_mode
+                                os.chmod(str(_bin), _mode | _stat.S_IXUSR | _stat.S_IXGRP | _stat.S_IXOTH)
                         return str(_ff), str(_ffp)
 
         ffmpeg_path = shutil.which("ffmpeg")
@@ -383,7 +398,12 @@ class AudioSeparator:
             return device
         try:
             import torch
-            return "cuda" if torch.cuda.is_available() else "cpu"
+            if torch.cuda.is_available():
+                return "cuda"
+            # Apple Silicon (M1/M2/M3): MPS バックエンドを優先使用
+            if sys.platform == 'darwin' and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                return "mps"
+            return "cpu"
         except ImportError:
             return "cpu"
 

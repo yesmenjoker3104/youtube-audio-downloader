@@ -50,10 +50,17 @@ _BUNDLE_DIR = Path(sys._MEIPASS) if _IS_FROZEN else Path(__file__).parent
 _log = logging.getLogger(__name__)
 _log.addHandler(logging.NullHandler())
 
-# モデルキャッシュを常に _BASE_DIR/models/ へ集約する
-# frozen 時: EXE 階隆の YoutubeAudioDownloader\models\
-# 開発時: youtube_dl\models\
-_models_dir = str(_BASE_DIR / 'models')
+# モデルキャッシュを書き込み可能な場所へ集約する
+# macOS frozen: App Translocation で .app バンドルが読み取り専用になるため
+# ~/Library/Application Support/YoutubeAudioDownloader/models を使用する
+if _IS_FROZEN and sys.platform == 'darwin':
+    _models_dir = str(
+        Path.home() / 'Library' / 'Application Support'
+        / 'YoutubeAudioDownloader' / 'models'
+    )
+else:
+    _models_dir = str(_BASE_DIR / 'models')
+os.makedirs(_models_dir, exist_ok=True)
 os.environ.setdefault('TORCH_HOME', _models_dir)
 
 # ── demucs 連携 ───────────────────────────────────────────────────────────────
