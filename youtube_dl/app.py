@@ -45,6 +45,10 @@ if _IS_FROZEN:
     except ImportError:
         pass
 
+# MPS (Apple Silicon) は一部の演算（出力チャンネル > 65536 の Conv 等）が未対応のため
+# 未対応の演算のみ CPU にフォールバックさせる
+os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
+
 # frozen EXE (console=False) では子プロセス（ffmpeg 等）の DOS ウィンドウを抑制する
 if _IS_FROZEN and sys.platform == 'win32':
     import subprocess as _sp
