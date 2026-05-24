@@ -50,16 +50,15 @@ _BUNDLE_DIR = Path(sys._MEIPASS) if _IS_FROZEN else Path(__file__).parent
 _log = logging.getLogger(__name__)
 _log.addHandler(logging.NullHandler())
 
-# モデルキャッシュを書き込み可能な場所へ集約する
 # macOS frozen: App Translocation で .app バンドルが読み取り専用になるため
-# ~/Library/Application Support/YoutubeAudioDownloader/models を使用する
+# 書き込みが必要なデータは ~/Library/Application Support/YoutubeAudioDownloader/ に保存する
 if _IS_FROZEN and sys.platform == 'darwin':
-    _models_dir = str(
-        Path.home() / 'Library' / 'Application Support'
-        / 'YoutubeAudioDownloader' / 'models'
-    )
+    _USER_DATA_DIR = Path.home() / 'Library' / 'Application Support' / 'YoutubeAudioDownloader'
 else:
-    _models_dir = str(_BASE_DIR / 'models')
+    _USER_DATA_DIR = _BASE_DIR
+_USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+_models_dir = str(_USER_DATA_DIR / 'models')
 os.makedirs(_models_dir, exist_ok=True)
 os.environ.setdefault('TORCH_HOME', _models_dir)
 
@@ -94,7 +93,7 @@ MAX_ENTRIES = 1000
 ROW_H       = 80
 THUMB_W     = 120
 THUMB_H     = 68
-DATA_FILE   = _BASE_DIR / "download_list.json"
+DATA_FILE   = _USER_DATA_DIR / "download_list.json"
 # ──────────────────────────────────────────────────────────────────────────────
 
 
