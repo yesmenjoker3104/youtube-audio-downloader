@@ -35,6 +35,16 @@ from PySide6.QtGui import QPixmap, QColor, QKeySequence, QIcon
 _IS_FROZEN  = getattr(sys, 'frozen', False)
 _BASE_DIR   = Path(sys.executable).parent if _IS_FROZEN else Path(__file__).parent
 
+# macOS PyInstaller バンドルではシステムの SSL 証明書が参照できないため
+# certifi の証明書を明示的に設定する（torch.hub のモデルダウンロードに必要）
+if _IS_FROZEN:
+    try:
+        import certifi as _certifi
+        os.environ.setdefault('SSL_CERT_FILE',      _certifi.where())
+        os.environ.setdefault('REQUESTS_CA_BUNDLE', _certifi.where())
+    except ImportError:
+        pass
+
 # frozen EXE (console=False) では子プロセス（ffmpeg 等）の DOS ウィンドウを抑制する
 if _IS_FROZEN and sys.platform == 'win32':
     import subprocess as _sp
