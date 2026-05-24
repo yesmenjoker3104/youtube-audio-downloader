@@ -333,11 +333,16 @@ class AudioSeparator:
                     _ffp = _d / _ffp_name
                     if _ff.exists() and _ffp.exists():
                         # macOS: PyInstaller がパーミッションを落とす場合があるため実行権限を付与
+                        # App Translocation 下では読み取り専用のため chmod が失敗する場合があるが
+                        # ビルド時に +x 済みならそのまま動くので OSError は無視する
                         if sys.platform == 'darwin':
                             import stat as _stat
                             for _bin in (_ff, _ffp):
-                                _mode = os.stat(str(_bin)).st_mode
-                                os.chmod(str(_bin), _mode | _stat.S_IXUSR | _stat.S_IXGRP | _stat.S_IXOTH)
+                                try:
+                                    _mode = os.stat(str(_bin)).st_mode
+                                    os.chmod(str(_bin), _mode | _stat.S_IXUSR | _stat.S_IXGRP | _stat.S_IXOTH)
+                                except OSError:
+                                    pass
                         return str(_ff), str(_ffp)
 
         ffmpeg_path = shutil.which("ffmpeg")
