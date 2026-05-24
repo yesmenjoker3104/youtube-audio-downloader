@@ -405,9 +405,8 @@ class AudioSeparator:
             import torch
             if torch.cuda.is_available():
                 return "cuda"
-            # Apple Silicon (M1/M2/M3): MPS バックエンドを優先使用
-            if sys.platform == 'darwin' and hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-                return "mps"
+            # MPS (Apple Silicon) は htdemucs の一部演算（出力チャンネル > 65536 の Conv 等）が
+            # 未対応のため CPU を使用する
             return "cpu"
         except ImportError:
             return "cpu"
