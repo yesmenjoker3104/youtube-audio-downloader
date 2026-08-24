@@ -103,6 +103,7 @@ Write-Host "========================================"  -ForegroundColor Green
 Write-Host "  ビルド完了!"                             -ForegroundColor Green
 Write-Host "  出力先: $ScriptDir\dist\YoutubeAudioDownloader\" -ForegroundColor Green
 Write-Host "  YoutubeAudioDownloader.exe を実行してください。" -ForegroundColor Green
+Write-Host "  CLI: YoutubeAudioDownloaderCli.exe --help" -ForegroundColor Green
 Write-Host ""
 Write-Host "  ※ 音源分離モデル (htdemucs_6s) は初回使用時に"    -ForegroundColor Yellow
 Write-Host "     インターネットから自動ダウンロードされます (~400MB)。" -ForegroundColor Yellow

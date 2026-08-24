@@ -9,6 +9,7 @@
 
 1. [概要](#1-概要)
 2. [起動方法](#2-起動方法)
+   - [コマンドラインリファレンス](#コマンドラインリファレンス)
 3. [画面構成](#3-画面構成)
 4. [YouTube ダウンロードタブ](#4-youtube-ダウンロードタブ)
    - [URL を追加する](#41-url-を追加する)
@@ -57,6 +58,74 @@ python app.py
 
 > **依存ライブラリ:**  `pip install PySide6 yt-dlp demucs pydub Pillow`  
 > ffmpeg が PATH に含まれているか、EXE 版では `ffmpeg.exe` が同梱されている必要があります。
+
+### コマンドラインで実行する場合（Windows EXE版）
+
+ビルド済みフォルダには、GUI版とは別に `YoutubeAudioDownloaderCli.exe` が含まれます。PowerShell またはコマンドプロンプトから実行してください。
+
+```powershell
+# 利用可能なコマンドを表示
+.\YoutubeAudioDownloaderCli.exe --help
+
+# URLからMP3をダウンロード
+.\YoutubeAudioDownloaderCli.exe download "https://www.youtube.com/watch?v=VIDEO_ID"
+
+# 保存先を指定し、ボーカルとドラムを分離
+.\YoutubeAudioDownloaderCli.exe download "https://www.youtube.com/watch?v=VIDEO_ID" --output-dir "D:\Music" --stems vocals drums
+
+# 手元の音声ファイルを全パートに分離
+.\YoutubeAudioDownloaderCli.exe separate "D:\Music\song.mp3"
+```
+
+`download --mp4` を指定すると、MP4とMP3の両方を保存します。複数のURLまたは音声ファイルを1回のコマンドに並べて指定できます。
+
+#### コマンドラインリファレンス
+
+基本形式:
+
+```powershell
+.\YoutubeAudioDownloaderCli.exe <command> [options] <input...>
+```
+
+| コマンド / オプション | 引数 | 既定値 | 説明 |
+|---|---|---|---|
+| `--help`, `-h` | なし | - | 全体の使い方を表示して終了します。`download --help`、`separate --help` では各コマンドの詳細を表示します。 |
+| `download` | URLを1個以上 | - | YouTube URLから音声をダウンロードします。URLは半角スペースで区切って複数指定できます。 |
+| `download --output-dir <フォルダ>` | フォルダパス | `%USERPROFILE%\Downloads\YoutubeAudioDownloader` | 保存先フォルダを指定します。存在しない場合は自動作成します。短縮形は `-o <フォルダ>` です。 |
+| `download --mp4` | なし | MP3のみ | MP4動画とMP3音声の両方を保存します。MP3抽出に失敗した場合はMP4のみが残ることがあります。 |
+| `download --flat` | なし | 曲ごとのサブフォルダを作成 | 曲名ごとのサブフォルダを作らず、指定した保存先へ直接ファイルを保存します。`--mp4` 使用時は常に曲ごとのサブフォルダを使用します。 |
+| `download --stems <パート...>` | 1個以上のパート名 | 分離しない | ダウンロード後、MP3を指定したパートに音源分離します。複数指定できます。 |
+| `separate` | 音声ファイルを1個以上 | - | ローカルの音声ファイルを音源分離します。出力は入力ファイルと同じフォルダです。 |
+| `separate --stems <パート...>` | 1個以上のパート名 | 全パート | 抽出するパートを指定します。複数指定できます。 |
+
+`--stems` に指定できるパート名:
+
+| 値 | 出力内容 |
+|---|---|
+| `vocals` | ボーカル |
+| `drums` | ドラム |
+| `bass` | ベース |
+| `guitar` | ギター |
+| `piano` | ピアノ |
+| `other` | その他の音 |
+
+利用例:
+
+```powershell
+# 複数URLを指定して、既定の保存先へMP3をダウンロード
+.\YoutubeAudioDownloaderCli.exe download "https://www.youtube.com/watch?v=ID1" "https://www.youtube.com/watch?v=ID2"
+
+# MP4・MP3をD:\Musicへ保存し、ボーカルとドラムだけ分離
+.\YoutubeAudioDownloaderCli.exe download "https://www.youtube.com/watch?v=VIDEO_ID" -o "D:\Music" --mp4 --stems vocals drums
+
+# サブフォルダを作らずにMP3を保存
+.\YoutubeAudioDownloaderCli.exe download "https://www.youtube.com/watch?v=VIDEO_ID" --flat
+
+# 複数のローカル音声からギターとピアノを抽出
+.\YoutubeAudioDownloaderCli.exe separate "D:\Music\song1.mp3" "D:\Music\song2.wav" --stems guitar piano
+```
+
+処理の進捗は標準出力、エラー詳細は標準エラー出力へ表示されます。すべて成功した場合の終了コードは `0`、ダウンロードまたは分離に失敗した場合は `1` です。処理対象を複数指定した場合、最初の失敗時点で終了します。
 
 ---
 

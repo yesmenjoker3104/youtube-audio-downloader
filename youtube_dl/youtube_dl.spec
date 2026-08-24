@@ -28,7 +28,7 @@ soundfile_datas, soundfile_binaries, soundfile_hiddenimports = collect_all('soun
 _local_utils = str(Path(SPECPATH) / 'utils')
 
 a = Analysis(
-    ['app.py'],
+    ['app.py', 'cli.py'],
     pathex=[str(Path(SPECPATH))],
     binaries=[
         # ffmpeg / ffprobe バイナリ (build.ps1 が ffmpeg/ へ配置)
@@ -90,7 +90,7 @@ pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
-    a.scripts,
+    [script for script in a.scripts if script[0] == 'app'],
     [],
     exclude_binaries=True,
     name='YoutubeAudioDownloader',
@@ -107,8 +107,28 @@ exe = EXE(
     icon='icon.ico',
 )
 
+cli_exe = EXE(
+    pyz,
+    [script for script in a.scripts if script[0] == 'cli'],
+    [],
+    exclude_binaries=True,
+    name='YoutubeAudioDownloaderCli',
+    debug=False,
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=True,
+    disable_windowed_traceback=False,
+    argv_emulation=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon='icon.ico',
+)
+
 coll = COLLECT(
     exe,
+    cli_exe,
     a.binaries,
     a.datas,
     strip=False,
