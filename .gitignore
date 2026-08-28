@@ -18,6 +18,15 @@ youtube_dl/ffmpeg_mac/
 # 環境・設定
 .game_python/
 .venv/
+youtube_dl/venv/
 .vscode/
 __pycache__/
 *.pyc
+
+# 配布済みWindowsモジュール（GitHub Releaseから取得）
+release_runtime/
+YoutubeAudioDownloaderCli.exe
+
+# 一時展開物・ダウンロード成果物
+_release_extract/
+downloads/

@@ -43,6 +43,21 @@
 
 ## 2. 起動方法
 
+### Windows配布版の準備
+
+Windows版は、GitHub ReleaseのZIPを解凍した配布フォルダ一式で動作します。`YoutubeAudioDownloaderCli.exe` 単体では動作しないため、`_internal` を含む全ファイルを残してください。Python依存関係のインストールや追加ビルドは、配布版を使う限り不要です。
+
+リポジトリのルートでGitHub CLI (`gh`) を使って準備できます。
+
+```powershell
+gh auth login
+.\setup.ps1
+```
+
+既定の配置先は `release_runtime\YoutubeAudioDownloader` です。取得元は次のWindows配布アセットです。
+
+`https://github.com/yesmenjoker3104/youtube-audio-downloader/releases/download/dev-latest/YoutubeAudioDownloader-Windows.zip`
+
 ### EXE ファイルで起動する場合
 
 1. `youtube_dl.exe` をダブルクリックします。
