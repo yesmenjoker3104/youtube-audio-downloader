@@ -36,6 +36,7 @@ def _configure_parser() -> argparse.ArgumentParser:
         help=f"保存先フォルダ（既定: {DEFAULT_OUTPUT_DIR}）",
     )
     download.add_argument("--mp4", action="store_true", help="MP4とMP3を保存する")
+    download.add_argument("--playlist", action="store_true", help="プレイリスト内の動画をすべて処理する")
     download.add_argument("--flat", action="store_true", help="曲ごとのサブフォルダを作らない")
     download.add_argument(
         "--stems", nargs="+", choices=STEM_CHOICES,
@@ -51,7 +52,7 @@ def _configure_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _download(url: str, output_dir: Path, keep_video: bool, use_subdir: bool, stems: list[str] | None) -> bool:
+def _download(url: str, output_dir: Path, keep_video: bool, use_subdir: bool, stems: list[str] | None, playlist: bool) -> bool:
     signals = AppSignals()
     result: dict[str, str] = {"path": "", "error": ""}
     signals.dl_progress.connect(_print_download_progress)
@@ -59,7 +60,10 @@ def _download(url: str, output_dir: Path, keep_video: bool, use_subdir: bool, st
     signals.dl_error.connect(lambda _url, error: result.__setitem__("error", error))
 
     print(f"[download] 開始: {url}", flush=True)
-    DownloadWorker(url, str(output_dir), use_subdir, signals, keep_video=keep_video).run()
+    DownloadWorker(
+        url, str(output_dir), use_subdir, signals,
+        keep_video=keep_video, allow_playlist=playlist,
+    ).run()
     if result["error"]:
         print(f"[error] ダウンロード失敗: {url}\n{result['error']}", file=sys.stderr)
         return False
@@ -95,7 +99,7 @@ def main() -> int:
     if args.command == "download":
         args.output_dir.mkdir(parents=True, exist_ok=True)
         succeeded = all(
-            _download(url, args.output_dir, args.mp4, not args.flat, args.stems)
+            _download(url, args.output_dir, args.mp4, not args.flat, args.stems, args.playlist)
             for url in args.urls
         )
     else:

@@ -240,10 +240,11 @@ class ThumbWorker(QRunnable):
 class DownloadWorker(QRunnable):
     """yt-dlp で音声抽出 → MP3 保存"""
     def __init__(self, url: str, out_dir: str, use_subdir: bool, sig: AppSignals,
-                 keep_video: bool = False):
+                 keep_video: bool = False, allow_playlist: bool = False):
         super().__init__()
         self.url, self.out_dir, self.use_subdir, self.sig = url, out_dir, use_subdir, sig
         self.keep_video = keep_video
+        self.allow_playlist = allow_playlist
         self.setAutoDelete(True)
 
     def run(self):
@@ -292,7 +293,7 @@ class DownloadWorker(QRunnable):
                 'postprocessor_hooks': [pp_hook],
                 'quiet': True,
                 'no_warnings': True,
-                'noplaylist': True,
+                'noplaylist': not self.allow_playlist,
                 'sleep_interval_requests': 2,
                 'sleep_interval': 1,
                 'max_sleep_interval': 5,
@@ -352,7 +353,7 @@ class DownloadWorker(QRunnable):
                 'postprocessor_hooks': [pp_hook],
                 'quiet': True,
                 'no_warnings': True,
-                'noplaylist': True,
+                'noplaylist': not self.allow_playlist,
                 'sleep_interval_requests': 2,
                 'sleep_interval': 1,
                 'max_sleep_interval': 5,
