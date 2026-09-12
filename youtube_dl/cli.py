@@ -2,6 +2,7 @@
 """YoutubeAudioDownloader command-line interface."""
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -43,6 +44,8 @@ def _configure_parser() -> argparse.ArgumentParser:
         help="ダウンロード完了後に指定パートを音源分離する",
     )
 
+    subparsers.add_parser("history", help="ダウンロード履歴を表示")
+
     separate = subparsers.add_parser("separate", help="ローカル音声ファイルを音源分離する")
     separate.add_argument("files", nargs="+", type=Path, help="入力音声ファイル（複数指定可）")
     separate.add_argument(
@@ -50,6 +53,34 @@ def _configure_parser() -> argparse.ArgumentParser:
         help="抽出するパート（既定: 全パート）",
     )
     return parser
+
+
+def _history() -> bool:
+    if getattr(sys, "frozen", False):
+        data_file = Path(sys.executable).parent / "download_list.json"
+    else:
+        data_file = Path(__file__).parent / "download_list.json"
+    if not data_file.exists():
+        print(json.dumps({"ok": True, "entries": [], "count": 0}, ensure_ascii=True))
+        return True
+    try:
+        with open(data_file, encoding="utf-8") as f:
+            data = json.load(f)
+        entries = [
+            {
+                "title": e.get("title", ""),
+                "url": e.get("url", ""),
+                "downloaded": e.get("downloaded", False),
+                "mp3_path": e.get("mp3_path", ""),
+            }
+            for e in data.get("entries", [])
+            if isinstance(e, dict)
+        ]
+        print(json.dumps({"ok": True, "entries": entries, "count": len(entries)}, ensure_ascii=True))
+        return True
+    except Exception as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=True))
+        return False
 
 
 def _download(url: str, output_dir: Path, keep_video: bool, use_subdir: bool, stems: list[str] | None, playlist: bool) -> bool:
@@ -102,6 +133,8 @@ def main() -> int:
             _download(url, args.output_dir, args.mp4, not args.flat, args.stems, args.playlist)
             for url in args.urls
         )
+    elif args.command == "history":
+        succeeded = _history()
     else:
         succeeded = all(_separate(str(path), args.stems) for path in args.files)
     return 0 if succeeded else 1
