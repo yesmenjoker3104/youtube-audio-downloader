@@ -48,7 +48,7 @@ fi
 
 echo ""
 echo "=== [3/4] 依存パッケージを確認 ==="
-pip install --quiet pyinstaller Pillow yt-dlp PySide6 pydub demucs
+pip install --quiet pyinstaller Pillow "yt-dlp[default]" PySide6 pydub demucs
 
 # Apple Silicon (M1/M2/M3) は MPS バックエンドの torch を使用可能
 if [ "$ARCH" = "arm64" ]; then

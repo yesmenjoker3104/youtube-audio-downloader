@@ -300,6 +300,7 @@
     <li class="h2"><a href="#status">6. 状態アイコンの見方</a></li>
     <li class="h2"><a href="#output">7. 出力ファイルの構成</a></li>
     <li class="h2"><a href="#faq">8. よくある質問</a></li>
+    <li class="h2"><a href="#update">9. アップデート</a></li>
   </ul>
 </nav>
 
@@ -344,7 +345,7 @@ python app.py</pre>
 
   <div class="box box-info">
     <div class="head">💡 必要な依存ライブラリ</div>
-    <code>pip install PySide6 yt-dlp demucs pydub Pillow</code><br>
+    <code>pip install PySide6 "yt-dlp[default]" demucs pydub Pillow</code><br>
     ffmpeg が PATH に含まれているか、EXE 版では <code>ffmpeg.exe</code> が同梱されている必要があります。
   </div>
 
@@ -569,9 +570,11 @@ python app.py</pre>
     <div class="faq-body">
       YouTube 側のレート制限や動画の地域制限が原因の場合があります。
       しばらく待ってから右クリック →「🔄 再ダウンロード」で再試行してください。
-      また <code>yt-dlp</code> のバージョンが古い場合も失敗することがあります。
-      <pre>pip install -U yt-dlp</pre>
-      でアップデートすると解決する場合があります。
+      <code>HTTP Error 403: Forbidden</code> と表示される場合は、同梱の <code>yt-dlp</code> が古くなっている可能性が高いです。
+      EXE 版は、メニューの <strong>ヘルプ → アップデートを確認...</strong> から最新版に更新してください（アップデート機能を含む版以降）。それより古い版は、リポジトリ直下で <code>.\setup.ps1</code> を再実行して入れ替えてください。<br>
+      ソースから実行している場合は、次のコマンドでアップデートしてください。
+      <pre>pip install -U "yt-dlp[default]"</pre>
+      Node.js（または Deno）がインストールされていると、YouTube の解析がより安定します。
     </div>
   </details>
 
@@ -617,6 +620,25 @@ python app.py</pre>
       1 リストあたり最大 <strong>1000 件</strong>まで登録できます。上限を超えた場合、古いエントリが自動的に削除されます。
     </div>
   </details>
+
+  <hr>
+
+  <!-- ──────────────────────────────────────────── -->
+  <h2 id="update">9. アップデート</h2>
+
+  <p>EXE 版と macOS 版は、GitHub にある新しいバージョンをアプリから確認し、自動で更新できます。</p>
+  <ol>
+    <li>メニューバーの <strong>ヘルプ → アップデートを確認...</strong> を選びます。</li>
+    <li>新しいバージョンがあれば「ダウンロードして、アプリを再起動しアップデートを適用しますか？」と表示されるので、<strong>はい</strong> を選びます。</li>
+    <li>ダウンロードが終わると、アプリが自動で終了し、新しいバージョンとして再起動します。ダウンロードリストやモデルのデータは引き継がれます。</li>
+  </ol>
+  <p><strong>注意事項</strong></p>
+  <ul>
+    <li>確認とダウンロードには GitHub CLI (<code>gh</code>) が必要です。<a href="https://cli.github.com/">公式サイト</a>からインストールし、<code>gh auth login</code> でログインしてください。</li>
+    <li>ダウンロードや音源分離の処理中はアップデートを適用しません。処理が終わってから、もう一度お試しください。</li>
+    <li>現在のバージョンは <strong>ヘルプ → バージョン情報</strong> で確認できます。</li>
+    <li>ソースコードから実行している場合、自動アップデートは利用できません。</li>
+  </ul>
 
   <hr>
   <p style="text-align:center; color: var(--dim); font-size: 12px;">

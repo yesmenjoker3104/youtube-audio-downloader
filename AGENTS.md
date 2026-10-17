@@ -77,7 +77,7 @@ pip install -r youtube_dl/requirements.txt
 
 主要パッケージ:
 - **PySide6** (≥6.5.0): Qt GUIフレームワーク
-- **yt-dlp** (≥2024.1.1): YouTubeダウンロード
+- **yt-dlp[default]** (≥2026.8.19): YouTubeダウンロード（YouTube の JS チャレンジ解決用 yt-dlp-ejs を含む）
 - **Demucs** (≥4.0.0): 音声ソース分離
 - **torch** & **torchaudio** (CPU版、PyPIまたはpytorch.org)
 
@@ -169,12 +169,14 @@ chmod +x build_mac.sh
 
 ### GitHubへのリリース
 
-1. [youtube_dl.spec](youtube_dl/youtube_dl.spec) と [youtube_dl_mac.spec](youtube_dl/youtube_dl_mac.spec) でバージョンを更新
-2. ユーザー向けの変更がある場合、[MANUAL.md](MANUAL.md) のチェンジログを更新
+バージョンの正は [youtube_dl/version.py](youtube_dl/version.py) の `__version__` です（`.spec` ではなくこちらを更新）。アプリの「ヘルプ → アップデートを確認」はこのバージョンと GitHub の最新正式リリース（タグ `vX.Y.Z`）を比較します。
+
+1. [youtube_dl/version.py](youtube_dl/version.py) の `__version__` を更新（例: `1.2.3`）
+2. ユーザー向けの変更がある場合、[MANUAL.md](youtube_dl/MANUAL.md) のチェンジログを更新
 3. コミット: `git add . && git commit -m "v1.2.3 release"`
-4. タグ付け: `git tag v1.2.3`
+4. タグ付け: `git tag v1.2.3`（タグは `version.py` と一致させること。CI が不一致だと失敗します）
 5. プッシュ: `git push origin main --tags`
-6. CI が自動実行 → ビルド＆ GitHub Releases へアップロード
+6. CI が自動実行 → ビルド＆ GitHub Releases へ正式リリースとしてアップロード（`dev-latest` は更新されません）
 
 ---
 
@@ -229,6 +231,7 @@ chmod +x build_mac.sh
 - **PyTorch MPS フォールバック:** Apple Silicon は非サポート演算で自動的にフォールバックを有効化（正常な動作）
 - **メモリ使用量:** 並行分離は~1～2GB/スレッド使用。2台以上の並列分離で最小4GB RAM必要
 - **FFmpeg:** Windows ビルドは ffmpeg をバンドル。macOS は Homebrew または静的ビルドからダウンロード（build_mac.sh を参照）
+- **YouTube の 403 エラー:** 配布版は CI ビルド時点の yt-dlp を同梱する。古い配布版は `HTTP Error 403: Forbidden` で失敗するため、`setup.ps1` の再実行（最新の `dev-latest` 取得）か再ビルドで更新する。YouTube の JS チャレンジ解決には Node.js / Deno が有効（`app.py` の `JS_RUNTIMES`）
 
 ---
 
@@ -238,6 +241,8 @@ chmod +x build_mac.sh
 youtube-audio-downloader/
 ├── youtube_dl/
 │   ├── app.py              ← メインGUI＆ワーカー（ここから開始）
+│   ├── updater.py           ← 自動アップデート（GitHub Release 取得・差し替え）
+│   ├── version.py           ← アプリのバージョン（__version__）
 │   ├── requirements.txt     ← Python依存関係
 │   ├── youtube_dl.spec      ← PyInstaller spec（Windows）
 │   ├── youtube_dl_mac.spec  ← PyInstaller spec（macOS）

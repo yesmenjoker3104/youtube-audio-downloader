@@ -54,7 +54,7 @@ if ((Test-Path $FfmpegExe) -and (Test-Path $FfprobeExe)) {
 # 3. 依存パッケージ
 Write-Host ""
 Write-Host "[3/4] 依存パッケージを確認..." -ForegroundColor Cyan
-pip install --quiet pyinstaller Pillow yt-dlp PySide6 pydub demucs
+pip install --quiet pyinstaller Pillow "yt-dlp[default]" PySide6 pydub demucs
 pip install --quiet torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 Write-Host "  依存パッケージ: OK" -ForegroundColor Green
 

@@ -4,7 +4,7 @@
 YouTube 動画から音声を抽出して MP3 ファイルに保存するアプリ。
 
 依存:
-  pip install PySide6 yt-dlp
+  pip install PySide6 "yt-dlp[default]"
   ffmpeg を PATH に追加 (https://ffmpeg.org/)
 """
 
@@ -25,9 +25,13 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QLabel, QTableWidget, QTableWidgetItem,
     QFileDialog, QMessageBox, QHeaderView, QAbstractItemView,
     QProgressBar, QCheckBox, QGroupBox, QSpinBox, QTabWidget, QMenu,
+    QProgressDialog,
 )
 from PySide6.QtCore import Qt, Signal, QObject, QRunnable, QThreadPool, Slot
 from PySide6.QtGui import QPixmap, QColor, QKeySequence, QIcon
+
+import updater
+from version import __version__
 
 # yt_dlp は起動時ではなく各ワーカーの run() 内で遅延インポートする（起動時間短縮）
 
@@ -108,6 +112,8 @@ ROW_H       = 80
 THUMB_W     = 120
 THUMB_H     = 68
 DATA_FILE   = _USER_DATA_DIR / "download_list.json"
+# YouTube の JS チャレンジ解決に使う JS ランタイム（PATH 上にあるものだけ使われる）
+JS_RUNTIMES = {'deno': {}, 'node': {}}
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -162,6 +168,7 @@ class InfoWorker(QRunnable):
                 'skip_download': True,
                 'noplaylist': True,          # プレイリスト URL でも単体動画を取得
                 'extract_flat': False,
+                'js_runtimes': JS_RUNTIMES,
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(self.url, download=False)
@@ -286,6 +293,7 @@ class DownloadWorker(QRunnable):
             opts = {
                 'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
                 'merge_output_format': 'mp4',
+                'js_runtimes': JS_RUNTIMES,
                 'postprocessors': [],
                 # 常にタイトル名のサブフォルダ内に保存
                 'outtmpl': str(Path(self.out_dir) / '%(title)s' / '%(title)s.%(ext)s'),
@@ -339,6 +347,7 @@ class DownloadWorker(QRunnable):
 
             opts = {
                 'format': 'bestaudio/best',
+                'js_runtimes': JS_RUNTIMES,
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -998,6 +1007,38 @@ class LocalSepWidget(QWidget):
 
 # ── Main Window ───────────────────────────────────────────────────────────────
 
+class UpdateSignals(QObject):
+    """アップデート処理の結果通知"""
+    checked    = Signal(object)                  # updater.ReleaseInfo / None（最新）
+    downloaded = Signal(object)                  # updater.UpdatePackage
+    failed     = Signal(str)                     # エラーメッセージ
+
+
+class UpdateCheckWorker(QRunnable):
+    def __init__(self, sig: UpdateSignals):
+        super().__init__()
+        self.sig = sig
+
+    def run(self):
+        try:
+            self.sig.checked.emit(updater.check_for_update())
+        except Exception as e:
+            self.sig.failed.emit(str(e))
+
+
+class UpdateDownloadWorker(QRunnable):
+    def __init__(self, info: 'updater.ReleaseInfo', sig: UpdateSignals):
+        super().__init__()
+        self.info = info
+        self.sig = sig
+
+    def run(self):
+        try:
+            self.sig.downloaded.emit(updater.download_update(self.info))
+        except Exception as e:
+            self.sig.failed.emit(str(e))
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -1007,6 +1048,13 @@ class MainWindow(QMainWindow):
         self.entries: list[dict] = []
         self.output_dir: str = str(Path.home() / "Downloads")
         self.sig = AppSignals()
+
+        self._upd_sig = UpdateSignals()
+        self._upd_busy = False
+        self._upd_progress = None
+        self._upd_sig.checked   .connect(self._on_update_checked)
+        self._upd_sig.downloaded.connect(self._on_update_downloaded)
+        self._upd_sig.failed    .connect(self._on_update_failed)
 
         # スレッドプール — 情報取得用とダウンロード用を分離
         self._pool_misc = QThreadPool()
@@ -1045,7 +1093,16 @@ class MainWindow(QMainWindow):
         self.local_sep_tab = LocalSepWidget()
         self._tabs.addTab(self.local_sep_tab, "🎸  ローカル MP3 音源分離")
         self.setCentralWidget(self._tabs)
+        self._build_menu()
         self._apply_style()
+
+    def _build_menu(self):
+        help_menu = self.menuBar().addMenu("ヘルプ")
+        act_upd = help_menu.addAction("アップデートを確認...")
+        act_upd.triggered.connect(self._check_for_updates)
+        help_menu.addSeparator()
+        act_about = help_menu.addAction("バージョン情報")
+        act_about.triggered.connect(self._show_about)
 
     def _build_yt_tab(self) -> QWidget:
         root = QWidget()
@@ -1711,6 +1768,104 @@ class MainWindow(QMainWindow):
                     self._pool_misc.start(ThumbWorker(e['url'], e['thumb_url'], self.sig))
         except Exception:
             pass
+
+    # ── アップデート ───────────────────────────────────────────────────────────
+
+    def _show_about(self):
+        QMessageBox.information(
+            self, "バージョン情報",
+            f"YouTube Audio Downloader\nバージョン {__version__}",
+        )
+
+    def _is_busy(self) -> bool:
+        return bool(self._dl_pending or self._sep_pending or self.local_sep_tab._pending)
+
+    def _busy_dialog(self, text: str) -> QProgressDialog:
+        dlg = QProgressDialog(text, None, 0, 0, self)
+        dlg.setWindowTitle("アップデート")
+        dlg.setWindowModality(Qt.WindowModal)
+        dlg.setMinimumDuration(0)
+        dlg.setCancelButton(None)
+        dlg.show()
+        return dlg
+
+    def _close_upd_progress(self):
+        if self._upd_progress is not None:
+            self._upd_progress.close()
+            self._upd_progress.deleteLater()
+            self._upd_progress = None
+
+    def _finish_update_attempt(self):
+        self._close_upd_progress()
+        self._upd_busy = False
+
+    def _check_for_updates(self):
+        if self._upd_busy:
+            return
+        if not updater.is_frozen():
+            QMessageBox.information(
+                self, "アップデート",
+                "ソースコードから実行中のため、自動アップデートは利用できません。\n"
+                f"現在のバージョン: {__version__}",
+            )
+            return
+        if self._is_busy():
+            QMessageBox.information(
+                self, "アップデート",
+                "ダウンロードまたは音源分離の処理が完了してから、アップデートを確認してください。",
+            )
+            return
+        self._upd_busy = True
+        self._upd_progress = self._busy_dialog("最新バージョンを確認しています…")
+        self._pool_misc.start(UpdateCheckWorker(self._upd_sig))
+
+    def _on_update_checked(self, info):
+        self._close_upd_progress()
+        if info is None:
+            self._upd_busy = False
+            QMessageBox.information(
+                self, "アップデート",
+                f"最新バージョンを使用しています。\n現在のバージョン: {__version__}",
+            )
+            return
+        ans = QMessageBox.question(
+            self, "アップデート",
+            f"新しいバージョン {info.version} があります。\n"
+            f"現在のバージョン: {__version__}\n\n"
+            "ダウンロードして、アプリを再起動しアップデートを適用しますか？",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes,
+        )
+        if ans != QMessageBox.Yes:
+            self._upd_busy = False
+            return
+        self._upd_progress = self._busy_dialog(f"バージョン {info.version} をダウンロードしています…")
+        self._pool_misc.start(UpdateDownloadWorker(info, self._upd_sig))
+
+    def _on_update_downloaded(self, pkg):
+        self._close_upd_progress()
+        # ダウンロード中に処理が始まっている場合は適用しない（終了で中断されるため）
+        if self._is_busy():
+            updater.discard_update(pkg)
+            self._upd_busy = False
+            QMessageBox.warning(
+                self, "アップデート",
+                "処理中のためアップデートを適用できませんでした。\n"
+                "処理が完了してから、もう一度お試しください。",
+            )
+            return
+        try:
+            updater.start_update(pkg, updater.install_target(), os.getpid())
+        except Exception as e:
+            updater.discard_update(pkg)
+            self._upd_busy = False
+            QMessageBox.critical(self, "アップデート", f"アップデートの適用に失敗しました:\n{e}")
+            return
+        self.close()
+        QApplication.quit()
+
+    def _on_update_failed(self, msg: str):
+        self._finish_update_attempt()
+        QMessageBox.warning(self, "アップデート", f"アップデートに失敗しました:\n{msg}")
 
     def closeEvent(self, event):
         """処理中に閉じようとした場合は確認ダイアログを表示し、中間ファイルを削除する"""
