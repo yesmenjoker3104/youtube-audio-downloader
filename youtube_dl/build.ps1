@@ -66,9 +66,7 @@ python -c @"
 from PIL import Image
 import pathlib
 img = Image.open('icon.png').convert('RGBA')
-sizes = [(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)]
-imgs = [img.resize(s, Image.LANCZOS) for s in sizes]
-imgs[0].save('icon.ico', format='ICO', sizes=sizes, append_images=imgs[1:])
+img.save('icon.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
 print('icon.ico: OK')
 "@
 if ($LASTEXITCODE -ne 0) {
