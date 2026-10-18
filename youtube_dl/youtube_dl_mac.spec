@@ -127,7 +127,7 @@ app = BUNDLE(
     bundle_identifier='com.local.youtubeaudiodownloader',
     info_plist={
         'CFBundleDisplayName': 'YouTube Audio Downloader',
-        'CFBundleShortVersionString': '0.1.0',
+        'CFBundleShortVersionString': '0.1.1',
         'NSHighResolutionCapable': True,
         'NSMicrophoneUsageDescription': 'This app does not use the microphone.',
     },
