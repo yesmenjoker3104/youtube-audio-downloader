@@ -73,6 +73,10 @@ jobs:
         working-directory: youtube_dl
         run: pyinstaller youtube_dl.spec --noconfirm
 
+      - name: Copy plugin.json into dist
+        shell: pwsh
+        run: Copy-Item plugin.json youtube_dl/dist/YoutubeAudioDownloader/plugin.json
+
       - name: Zip Windows build
         working-directory: youtube_dl/dist
         shell: pwsh

@@ -1,0 +1,45 @@
+{
+  "name": "YoutubeAudioDownloader",
+  "version": "1.1.0",
+  "description": "YouTubeの動画・音声をダウンロードし、Demucsで音源分離する",
+  "executable": "YoutubeAudioDownloaderCli.exe",
+  "actions": [
+    {
+      "action": "download_video",
+      "prompt_hint": "YouTube動画・音声のダウンロード（YouTube URLが含まれるとき、またはダウンロード・保存を依頼されたとき）",
+      "prompt_example": {
+        "action": "download_video",
+        "urls": ["https://www.youtube.com/watch?v=EXAMPLE"],
+        "mp4": false,
+        "stems": [],
+        "playlist": false
+      },
+      "prompt_notes": "* urlsにはYouTube URLのリストを必ず入れる。mp4:trueで動画+音源保存（既定はfalse=音源のみ）。stemsで音源分離パートを指定（vocals/drums/bass/guitar/piano/other）。プレイリストURLではplaylist:trueにする。",
+      "command": {
+        "subcommands": ["download"],
+        "args": [
+          { "type": "multi_positional", "param": "urls" },
+          { "type": "bool_flag", "flag": "--mp4", "param": "mp4" },
+          { "type": "bool_flag", "flag": "--playlist", "param": "playlist" },
+          { "type": "multi_flag", "flag": "--stems", "param": "stems", "omit_if_null": true }
+        ]
+      },
+      "handler": "plugin",
+      "display": "progress",
+      "display_template": "ダウンロード完了。{downloaded}件処理しました。保存先: {output_dir}"
+    },
+    {
+      "action": "get_download_history",
+      "prompt_hint": "ダウンロード履歴（過去にダウンロードした動画・音楽の一覧）",
+      "prompt_example": { "action": "get_download_history" },
+      "command": {
+        "subcommands": ["history"],
+        "args": []
+      },
+      "handler": "plugin",
+      "display": "table",
+      "display_field": "entries",
+      "display_columns": ["title", "url", "downloaded", "mp3_path"]
+    }
+  ]
+}

@@ -13,15 +13,20 @@ DEFAULT_OUTPUT_DIR = Path.home() / "Downloads" / "YoutubeAudioDownloader"
 STEM_CHOICES = ("vocals", "drums", "bass", "guitar", "piano", "other")
 
 
-def _print_download_progress(_url: str, text: str, percent: float) -> None:
+def _emit_progress(pid: str, text: str) -> None:
+    """JSON progress 制御行を stdout に書き出す（assist-chat plugin プロトコル）。"""
+    print(json.dumps({"type": "progress", "id": pid, "text": text}, ensure_ascii=True), flush=True)
+
+
+def _print_download_progress(url: str, text: str, percent: float) -> None:
     if percent >= 0:
-        print(f"[download] {percent:5.1f}% {text}", flush=True)
+        _emit_progress(f"dl_{url}", f"[download] {percent:5.1f}% {text}")
     else:
-        print(f"[download] {text}", flush=True)
+        _emit_progress(f"dl_{url}", f"[download] {text}")
 
 
-def _print_separation_progress(_source: str, text: str) -> None:
-    print(f"[separate] {text}", flush=True)
+def _print_separation_progress(source: str, text: str) -> None:
+    _emit_progress(f"sep_{source}", f"[separate] {text}")
 
 
 def _configure_parser() -> argparse.ArgumentParser:
@@ -83,61 +88,76 @@ def _history() -> bool:
         return False
 
 
-def _download(url: str, output_dir: Path, keep_video: bool, use_subdir: bool, stems: list[str] | None, playlist: bool) -> bool:
+def _download(url: str, output_dir: Path, keep_video: bool, use_subdir: bool, stems: list[str] | None, playlist: bool) -> dict:
     signals = AppSignals()
     result: dict[str, str] = {"path": "", "error": ""}
     signals.dl_progress.connect(_print_download_progress)
     signals.dl_done.connect(lambda _url, path: result.__setitem__("path", path))
     signals.dl_error.connect(lambda _url, error: result.__setitem__("error", error))
 
-    print(f"[download] 開始: {url}", flush=True)
+    _emit_progress(f"dl_{url}", f"開始: {url}")
     DownloadWorker(
         url, str(output_dir), use_subdir, signals,
         keep_video=keep_video, allow_playlist=playlist,
     ).run()
     if result["error"]:
-        print(f"[error] ダウンロード失敗: {url}\n{result['error']}", file=sys.stderr)
-        return False
+        return {"ok": False, "url": url, "error": result["error"]}
     if not result["path"]:
-        print(f"[error] 出力されたMP3を特定できませんでした: {url}", file=sys.stderr)
-        return False
+        return {"ok": False, "url": url, "error": f"出力されたMP3を特定できませんでした: {url}"}
 
-    print(f"[download] 完了: {result['path']}", flush=True)
-    return _separate(result["path"], stems) if stems else True
+    _emit_progress(f"dl_{url}", f"完了: {result['path']}")
+
+    if stems:
+        sep_result = _separate(result["path"], stems)
+        if not sep_result["ok"]:
+            return sep_result
+    return {"ok": True, "url": url, "path": result["path"]}
 
 
-def _separate(audio_path: str, stems: list[str]) -> bool:
+def _separate(audio_path: str, stems: list[str]) -> dict:
     signals = AppSignals()
     result = {"error": "", "done": False}
     signals.sep_progress.connect(_print_separation_progress)
     signals.sep_done.connect(lambda _source: result.__setitem__("done", True))
     signals.sep_error.connect(lambda _source, error: result.__setitem__("error", error))
 
-    print(f"[separate] 開始: {audio_path}", flush=True)
+    _emit_progress(f"sep_{audio_path}", f"開始: {audio_path}")
     SeparateWorker(audio_path, audio_path, stems, signals).run()
     if result["error"]:
-        print(f"[error] 音源分離失敗: {audio_path}\n{result['error']}", file=sys.stderr)
-        return False
+        return {"ok": False, "source": audio_path, "error": result["error"]}
     if not result["done"]:
-        print(f"[error] 音源分離が完了しませんでした: {audio_path}", file=sys.stderr)
-        return False
-    print(f"[separate] 完了: {Path(audio_path).parent}", flush=True)
-    return True
+        return {"ok": False, "source": audio_path, "error": f"音源分離が完了しませんでした: {audio_path}"}
+    _emit_progress(f"sep_{audio_path}", f"完了: {Path(audio_path).parent}")
+    return {"ok": True, "source": audio_path, "output_dir": str(Path(audio_path).parent)}
 
 
 def main() -> int:
     args = _configure_parser().parse_args()
     if args.command == "download":
         args.output_dir.mkdir(parents=True, exist_ok=True)
-        succeeded = all(
+        results = [
             _download(url, args.output_dir, args.mp4, not args.flat, args.stems, args.playlist)
             for url in args.urls
-        )
+        ]
+        failed = [r for r in results if not r.get("ok")]
+        succeeded = len(results) - len(failed)
+        ok = len(failed) == 0
+        payload: dict = {"ok": ok, "downloaded": succeeded, "failed": len(failed), "output_dir": str(args.output_dir)}
+        if not ok:
+            payload["error"] = f"{len(failed)}件のダウンロードに失敗しました。"
+        print(json.dumps(payload, ensure_ascii=True))
+        return 0 if ok else 1
     elif args.command == "history":
-        succeeded = _history()
-    else:
-        succeeded = all(_separate(str(path), args.stems) for path in args.files)
-    return 0 if succeeded else 1
+        return 0 if _history() else 1
+    else:  # separate
+        results = [_separate(str(path), args.stems) for path in args.files]
+        failed = [r for r in results if not r.get("ok")]
+        ok = len(failed) == 0
+        payload = {"ok": ok, "processed": len(results) - len(failed), "failed": len(failed)}
+        if not ok:
+            payload["error"] = f"{len(failed)}件の音源分離に失敗しました。"
+        print(json.dumps(payload, ensure_ascii=True))
+        return 0 if ok else 1
 
 
 if __name__ == "__main__":
