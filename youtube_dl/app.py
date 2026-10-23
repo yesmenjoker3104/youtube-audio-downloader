@@ -301,6 +301,8 @@ class DownloadWorker(QRunnable):
                 'postprocessor_hooks': [pp_hook],
                 'quiet': True,
                 'no_warnings': True,
+                # yt-dlp の進捗バーは stdout に出るため CLI の JSON 出力を壊す。hook で進捗は取得する
+                'noprogress': True,
                 'noplaylist': not self.allow_playlist,
                 'sleep_interval_requests': 2,
                 'sleep_interval': 1,
@@ -362,6 +364,7 @@ class DownloadWorker(QRunnable):
                 'postprocessor_hooks': [pp_hook],
                 'quiet': True,
                 'no_warnings': True,
+                'noprogress': True,
                 'noplaylist': not self.allow_playlist,
                 'sleep_interval_requests': 2,
                 'sleep_interval': 1,
